@@ -68,7 +68,7 @@ EAPI_MAIN int elm_main(int argc, char * argv[])
 	elm_win_resize_object_add(win, box);
 	evas_object_show(box);
 
-	//------------------- toolbar
+	//------------------- toolbar: in main vbox
 	toolbar = elm_toolbar_add(win);
 	evas_object_size_hint_align_set(toolbar, EVAS_HINT_FILL, 0);
 	elm_box_pack_end(box, toolbar);
@@ -91,13 +91,22 @@ EAPI_MAIN int elm_main(int argc, char * argv[])
 		}), NULL);
 	elm_toolbar_item_append(toolbar, "edit-delete", "退出", (void *)&elm_exit, NULL);
 
-	//------------------- tree
+	//------------------- panes: in main vbox
+	$_(panes, elm_panes_add(win));
+	elm_panes_horizontal_set(panes, EINA_TRUE);
+	evas_object_size_hint_weight_set(panes,
+			EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+	elm_win_resize_object_add(win, panes);
+	//elm_box_pack_end(box, panes);
+	evas_object_show(panes);
+
+	//------------------- tree: in pane's top
 	// frame
 	$_(tree_frame, elm_frame_add(win));
 	elm_object_text_set(tree_frame, "家谱树");
 	evas_object_size_hint_weight_set(tree_frame, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-	evas_object_size_hint_fill_set(tree_frame, EVAS_HINT_FILL, EVAS_HINT_FILL);
-	elm_box_pack_end(box, tree_frame);
+	evas_object_size_hint_align_set(tree_frame, EVAS_HINT_FILL, EVAS_HINT_FILL);
+	elm_object_part_content_set(panes, "top", tree_frame);
 	evas_object_show(tree_frame);
 
 	// genlist
@@ -145,13 +154,13 @@ EAPI_MAIN int elm_main(int argc, char * argv[])
 	// add root item
 	elm_genlist_item_append(tree, ic, root, NULL, ELM_GENLIST_ITEM_TREE, NULL, NULL);
 
-	//------------------- properties
+	//------------------- properties: in pane's bottom
 	// frame
 	$_(props_frame, elm_frame_add(win));
 	elm_object_text_set(props_frame, "属性");
-	evas_object_size_hint_weight_set(props_frame, EVAS_HINT_EXPAND, 0.7);
+	evas_object_size_hint_weight_set(props_frame, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
 	evas_object_size_hint_align_set(props_frame, EVAS_HINT_FILL, EVAS_HINT_FILL);
-	elm_box_pack_end(box, props_frame);
+	elm_object_part_content_set(panes, "bottom", props_frame);
 	evas_object_show(props_frame);
 
 	// scroller
