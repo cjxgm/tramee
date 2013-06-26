@@ -21,6 +21,7 @@ static Evas_Object * win;
 static Evas_Object * toolbar;
 static Evas_Object * tree;
 static Evas_Object * props;
+static Elm_Genlist_Item_Class * ic;
 #if 0
 static Evas_Object * stack;
 static Evas_Object * menu_node;
@@ -74,26 +75,26 @@ EAPI_MAIN int elm_main(int argc, char * argv[])
 	evas_object_show(toolbar);
 
 	// toolbar items
-	elm_toolbar_item_append(toolbar, "document-new", "New",
+	elm_toolbar_item_append(toolbar, "document-new", "新建",
 		(void *)$(void, () {
 			toolbar_no_selected();
 		}), NULL);
-	elm_toolbar_item_append(toolbar, "document-open", "Open",
+	elm_toolbar_item_append(toolbar, "document-open", "打开",
 		(void *)$(void, () {
 			toolbar_no_selected();
-			popup_file_selector("Open what?", false, NULL);
+			popup_file_selector("打开什么？", false, NULL);
 		}), NULL);
-	elm_toolbar_item_append(toolbar, "document-save", "Save",
+	elm_toolbar_item_append(toolbar, "document-save", "保存",
 		(void *)$(void, () {
 			toolbar_no_selected();
-			popup_file_selector("Save to?", true, NULL);
+			popup_file_selector("保存到哪？", true, NULL);
 		}), NULL);
-	elm_toolbar_item_append(toolbar, "edit-delete", "Exit", (void *)&elm_exit, NULL);
+	elm_toolbar_item_append(toolbar, "edit-delete", "退出", (void *)&elm_exit, NULL);
 
 	//------------------- tree
 	// frame
 	$_(tree_frame, elm_frame_add(win));
-	elm_object_text_set(tree_frame, "Tree");
+	elm_object_text_set(tree_frame, "家谱树");
 	evas_object_size_hint_weight_set(tree_frame, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
 	evas_object_size_hint_fill_set(tree_frame, EVAS_HINT_FILL, EVAS_HINT_FILL);
 	elm_box_pack_end(box, tree_frame);
@@ -107,22 +108,47 @@ EAPI_MAIN int elm_main(int argc, char * argv[])
 	elm_object_content_set(tree_frame, tree);
 	evas_object_show(tree);
 
-	// genlist test
-	$_(tc, elm_genlist_item_class_new());
-	tc->item_style = "tree_effect";
-	tc->func.text_get = (void *)$(const char *, () {
-		return strdup("Test!");
+	// init item class
+	ic = elm_genlist_item_class_new();
+	ic->item_style = "tree_effect";
+	ic->func.text_get = (void *)$(const char *, (Tree * t) {
+		return strdup(t->name);
 	});
-	tc->func.content_get = NULL;
-	tc->func.state_get = NULL;
-	tc->func.del = NULL;
+	ic->func.content_get = NULL;
+	ic->func.state_get = NULL;
+	ic->func.del = NULL;	// TODO
 
-	elm_genlist_item_append(tree, tc, NULL, NULL, ELM_GENLIST_ITEM_TREE, NULL, NULL);
+	// init genlist for expand
+	$$$$(tree, "expand,request",
+		$(void, (void * $1, void * $2, Elm_Object_Item * item) {
+			elm_genlist_item_expanded_set(item, EINA_TRUE);
+		}), NULL);
+	$$$$(tree, "expanded",
+		$(void, (void * $1, void * $2, Elm_Object_Item * item) {
+			Tree * t = elm_object_item_data_get(item);
+			pack_walk(t->boys, Tree, boy, {
+				elm_genlist_item_append(tree, ic, boy, item,
+						ELM_GENLIST_ITEM_TREE, NULL, NULL);
+			});
+		}), NULL);
+
+	// init genlist for contract
+	$$$$(tree, "contract,request",
+		$(void, (void * $1, void * $2, Elm_Object_Item * item) {
+			elm_genlist_item_expanded_set(item, EINA_FALSE);
+		}), NULL);
+	$$$$(tree, "contracted",
+		$(void, (void * $1, void * $2, Elm_Object_Item * item) {
+			elm_genlist_item_subitems_clear(item);
+		}), NULL);
+
+	// add root item
+	elm_genlist_item_append(tree, ic, root, NULL, ELM_GENLIST_ITEM_TREE, NULL, NULL);
 
 	//------------------- properties
 	// frame
 	$_(props_frame, elm_frame_add(win));
-	elm_object_text_set(props_frame, "Properties");
+	elm_object_text_set(props_frame, "属性");
 	evas_object_size_hint_weight_set(props_frame, EVAS_HINT_EXPAND, 0.7);
 	evas_object_size_hint_align_set(props_frame, EVAS_HINT_FILL, EVAS_HINT_FILL);
 	elm_box_pack_end(box, props_frame);
