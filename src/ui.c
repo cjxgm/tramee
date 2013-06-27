@@ -96,8 +96,10 @@ EAPI_MAIN int elm_main(int argc, char * argv[])
 	elm_panes_horizontal_set(panes, EINA_TRUE);
 	evas_object_size_hint_weight_set(panes,
 			EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+	evas_object_size_hint_align_set(panes,
+			EVAS_HINT_FILL, EVAS_HINT_FILL);
 	elm_win_resize_object_add(win, panes);
-	//elm_box_pack_end(box, panes);
+	elm_box_pack_end(box, panes);
 	evas_object_show(panes);
 
 	//------------------- tree: in pane's top
@@ -106,7 +108,7 @@ EAPI_MAIN int elm_main(int argc, char * argv[])
 	elm_object_text_set(tree_frame, "家谱树");
 	evas_object_size_hint_weight_set(tree_frame, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
 	evas_object_size_hint_align_set(tree_frame, EVAS_HINT_FILL, EVAS_HINT_FILL);
-	elm_object_part_content_set(panes, "top", tree_frame);
+	elm_object_part_content_set(panes, "left", tree_frame);
 	evas_object_show(tree_frame);
 
 	// genlist
@@ -121,7 +123,18 @@ EAPI_MAIN int elm_main(int argc, char * argv[])
 	ic = elm_genlist_item_class_new();
 	ic->item_style = "tree_effect";
 	ic->func.text_get = (void *)$(const char *, (Tree * t) {
-		return strdup(t->name);
+		static char str[64];
+		static const char * number_lookup[] = {
+			"无", "一", "二", "三", "四", "五", "多"
+		};
+		inline const char * lookup(int num)
+		{
+			if (num > 5) return number_lookup[6];
+			return number_lookup[num];
+		}
+		snprintf(str, 32, "%s: %s子%s女", t->name,
+				lookup(pack_length(t->boys)), lookup(t->ngirl));
+		return strdup(str);
 	});
 	ic->func.content_get = NULL;
 	ic->func.state_get = NULL;
@@ -130,7 +143,10 @@ EAPI_MAIN int elm_main(int argc, char * argv[])
 	// init genlist for expand
 	$$$$(tree, "expand,request",
 		$(void, (void * $1, void * $2, Elm_Object_Item * item) {
-			elm_genlist_item_expanded_set(item, EINA_TRUE);
+			Tree * t = elm_object_item_data_get(item);
+			if (pack_length(t->boys))
+				elm_genlist_item_expanded_set(item, EINA_TRUE);
+			else popup_message("请生子！");
 		}), NULL);
 	$$$$(tree, "expanded",
 		$(void, (void * $1, void * $2, Elm_Object_Item * item) {
@@ -160,7 +176,7 @@ EAPI_MAIN int elm_main(int argc, char * argv[])
 	elm_object_text_set(props_frame, "属性");
 	evas_object_size_hint_weight_set(props_frame, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
 	evas_object_size_hint_align_set(props_frame, EVAS_HINT_FILL, EVAS_HINT_FILL);
-	elm_object_part_content_set(panes, "bottom", props_frame);
+	elm_object_part_content_set(panes, "right", props_frame);
 	evas_object_show(props_frame);
 
 	// scroller
