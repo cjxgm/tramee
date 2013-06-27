@@ -143,21 +143,32 @@ EAPI_MAIN int elm_main(int argc, char * argv[])
 			if (!strcmp(part, "elm.swallow.icon")) {
 				$_(btn, elm_button_add(win));
 				elm_object_text_set(btn, "生子");
-				$$$$(btn, "clicked",
-					$(void, (Tree * t, Elm_Object_Item * item) {
-						$_(boy, tree_new(t));
-						item = elm_genlist_selected_item_get(tree);
-						elm_genlist_item_update(item);
-						if (elm_genlist_item_expanded_get(item))
-							elm_genlist_item_append(tree, ic, boy, item,
-									ELM_GENLIST_ITEM_TREE, NULL, NULL);
-						elm_genlist_item_expanded_set(item, EINA_TRUE);
-					}), t);
+				$$$$(btn, "clicked", $(void, (Tree * t) {
+					$_(boy, tree_new(t));
+					$_(item, elm_genlist_selected_item_get(tree));
+					elm_genlist_item_update(item);
+					if (elm_genlist_item_expanded_get(item))
+						elm_genlist_item_append(tree, ic, boy, item,
+								ELM_GENLIST_ITEM_TREE, NULL, NULL);
+					elm_genlist_item_expanded_set(item, EINA_TRUE);
+				}), t);
 				return btn;
 			}
 			else {
 				$_(btn, elm_button_add(win));
 				elm_object_text_set(btn, "删除");
+				$$$$(btn, "clicked", $(void, (Tree * t) {
+					$_(item, elm_genlist_selected_item_get(tree));
+					$_(parent, elm_genlist_item_parent_get(item));
+					if (!parent) return;
+
+					//tree_delete(t);
+					elm_object_item_del(item);
+
+					Tree * pa = elm_object_item_data_get(parent);
+					if (!pack_length(pa->boys))
+						elm_genlist_item_expanded_set(parent, EINA_FALSE);
+				}), t);
 				return btn;
 			}
 		});
