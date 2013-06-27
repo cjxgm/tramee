@@ -122,6 +122,7 @@ EAPI_MAIN int elm_main(int argc, char * argv[])
 	// init item class
 	ic = elm_genlist_item_class_new();
 	ic->item_style = "tree_effect";
+
 	ic->func.text_get = (void *)$(const char *, (Tree * t) {
 		static char str[64];
 		static const char * number_lookup[] = {
@@ -132,11 +133,35 @@ EAPI_MAIN int elm_main(int argc, char * argv[])
 			if (num > 5) return number_lookup[6];
 			return number_lookup[num];
 		}
-		snprintf(str, 32, "%s: %s子%s女", t->name,
+		snprintf(str, 32, "%s：%s子%s女", t->name,
 				lookup(pack_length(t->boys)), lookup(t->ngirl));
 		return strdup(str);
 	});
-	ic->func.content_get = NULL;
+
+	ic->func.content_get =
+		(void *)$(Evas_Object *, (Tree * t, void * $2, const char * part) {
+			if (!strcmp(part, "elm.swallow.icon")) {
+				$_(btn, elm_button_add(win));
+				elm_object_text_set(btn, "生子");
+				$$$$(btn, "clicked",
+					$(void, (Tree * t, Elm_Object_Item * item) {
+						$_(boy, tree_new(t));
+						item = elm_genlist_selected_item_get(tree);
+						elm_genlist_item_update(item);
+						if (elm_genlist_item_expanded_get(item))
+							elm_genlist_item_append(tree, ic, boy, item,
+									ELM_GENLIST_ITEM_TREE, NULL, NULL);
+						elm_genlist_item_expanded_set(item, EINA_TRUE);
+					}), t);
+				return btn;
+			}
+			else {
+				$_(btn, elm_button_add(win));
+				elm_object_text_set(btn, "删除");
+				return btn;
+			}
+		});
+
 	ic->func.state_get = NULL;
 	ic->func.del = NULL;	// TODO
 
@@ -186,39 +211,6 @@ EAPI_MAIN int elm_main(int argc, char * argv[])
 	elm_object_content_set(props_frame, props);
 	evas_object_show(props);
 #if 0
-
-	// menu
-	menu_node = elm_menu_add(win);
-	// show menu when right clicked
-	$$$(nodes, EVAS_CALLBACK_MOUSE_DOWN,
-		$(void, (void * $1, void * $2, void * $3, Evas_Event_Mouse_Down * ev) {
-			if (ev->button == 3) {
-				// when no item selected, disable "Delete" item
-				elm_object_item_disabled_set(menu_delete, !elm_list_selected_item_get(nodes));
-
-				elm_menu_move(menu_node, ev->canvas.x, ev->canvas.y);
-				evas_object_show(menu_node);
-			}
-		}), NULL);
-
-	menu_add = elm_menu_item_add(menu_node, NULL, "document-new", "Add", NULL, NULL);
-
-	menu_delete = elm_menu_item_add(menu_node, NULL,
-		"edit-delete", "Delete", (void *)$(void, () {
-			$_(item, elm_list_selected_item_get(nodes));
-			$_(o, elm_menu_item_object_get(item));
-			Operator * op = evas_object_data_get(o, "ipu:operator");
-
-			elm_object_content_unset(props);
-			evas_object_hide(op->table);
-			props_current = NULL;
-
-			free(evas_object_data_get(o, "ipu:v"));
-			elm_object_item_del(item);
-
-			execute_nodes();
-		}), NULL);
-
 	//------------------- properties
 	// frame
 	$_(props_frame, elm_frame_add(win));
@@ -234,32 +226,6 @@ EAPI_MAIN int elm_main(int argc, char * argv[])
 	evas_object_size_hint_fill_set(props, EVAS_HINT_FILL, EVAS_HINT_FILL);
 	elm_object_content_set(props_frame, props);
 	evas_object_show(props);
-
-	//------------------- image stack
-	// frame
-	$_(stack_frame, elm_frame_add(win));
-	elm_object_text_set(stack_frame, "Image Stack");
-	evas_object_size_hint_weight_set(stack_frame, 0.75, 1);
-	evas_object_size_hint_align_set(stack_frame, EVAS_HINT_FILL, EVAS_HINT_FILL);
-	elm_box_pack_end(content, stack_frame);
-	evas_object_show(stack_frame);
-
-	// scroller
-	$_(stack_scroller, elm_scroller_add(win));
-	evas_object_size_hint_weight_set(stack_scroller, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-	evas_object_size_hint_fill_set(stack_scroller, EVAS_HINT_FILL, EVAS_HINT_FILL);
-	elm_object_content_set(stack_frame, stack_scroller);
-	evas_object_show(stack_scroller);
-
-	// table
-	stack = elm_table_add(win);
-	evas_object_size_hint_weight_set(stack, EVAS_HINT_EXPAND, 0);
-	evas_object_size_hint_fill_set(stack, EVAS_HINT_FILL, EVAS_HINT_FILL);
-	elm_object_content_set(stack_scroller, stack);
-	evas_object_show(stack);
-
-	//------------------- prepare operators
-	ops_register_operators();
 #endif
 	//------------------- done!
 	evas_object_show(win);
