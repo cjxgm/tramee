@@ -192,9 +192,6 @@ EAPI_MAIN int elm_main(int argc, char * argv[])
 			}
 		});
 
-//	ic->func.state_get = NULL;
-//	ic->func.del = NULL;
-
 	// init genlist for expand
 	$$$$(tree, "expand,request",
 		$(void, (void * $1, void * $2, Elm_Object_Item * item) {
