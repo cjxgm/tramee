@@ -430,18 +430,26 @@ static void edit(Tree * t)
 })
 #define EDIT_UINT($label, $var) ({ \
 	EDIT_INIT($label); \
-	$_(ob, elm_spinner_add(win)); \
-	elm_spinner_min_max_set(ob, 0, 9); \
-	elm_spinner_round_set(ob, 1); \
-	elm_spinner_step_set(ob, 1); \
-	elm_spinner_label_format_set(ob, "%0.0g"); \
-	elm_spinner_value_set(ob, ($var)); \
+	$_(ob, elm_slider_add(win)); \
+	elm_slider_min_max_set(ob, 0, 6); \
+	elm_slider_value_set(ob, ($var)); \
 	EDIT_DONE(); \
  \
 	$$$$(ob, "changed", $(void, (size_t * s, Evas_Object * ob) { \
-		*s = elm_spinner_value_get(ob); \
+		*s = round(elm_slider_value_get(ob)); \
 		elm_genlist_realized_items_update(tree); \
 	}), &($var)); \
+	$$$$(ob, "slider,drag,stop", $(void, (void * $1, Evas_Object * ob) { \
+		elm_slider_value_set(ob, round(elm_slider_value_get(ob))); \
+	}), &($var)); \
+ \
+	char * format(double num) \
+	{ \
+		return (char *)lookup(round(num)); \
+	} \
+	elm_slider_indicator_format_function_set(ob, &format, NULL); \
+	elm_slider_units_format_function_set(ob, &format, NULL); \
+	elm_slider_unit_format_set(ob, ""); \
 })
 
 	//-------------- EDIT HERE ----------------
