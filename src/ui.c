@@ -30,6 +30,17 @@ static Evas_Object * props;
 static Elm_Genlist_Item_Class * ic;
 
 
+static const char * number_lookup[] = {
+	"无", "一", "二", "三", "四", "五", "多"
+};
+static inline const char * lookup(int num)
+{
+	if (num >= array_length(number_lookup)-1)
+		return number_lookup[array_length(number_lookup)-1];
+	return number_lookup[num];
+}
+
+
 
 
 EAPI_MAIN int elm_main(int argc, char * argv[]);
@@ -137,14 +148,6 @@ EAPI_MAIN int elm_main(int argc, char * argv[])
 
 	ic->func.text_get = (void *)$(const char *, (Tree * t) {
 		static char str[64];
-		static const char * number_lookup[] = {
-			"无", "一", "二", "三", "四", "五", "多"
-		};
-		inline const char * lookup(int num)
-		{
-			if (num > 5) return number_lookup[6];
-			return number_lookup[num];
-		}
 		snprintf(str, 32, "%s：%s子%s女", t->name,
 				lookup(pack_length(t->boys)), lookup(t->ngirl));
 		return strdup(str);
@@ -395,6 +398,7 @@ static void edit(Tree * t)
 
 #define EDIT_INIT($label) ({ \
 	$_(label, elm_label_add(win)); \
+	elm_object_scale_set(label, 1.2); \
 	evas_object_size_hint_padding_set(label, 5, 0, 0, 0); \
 	elm_object_text_set(label, $label "："); \
 	elm_table_pack(table, label, 0, i, 1, 1); \
@@ -419,7 +423,7 @@ static void edit(Tree * t)
 	EDIT_DONE(); \
  \
 	$$$$(ob, "changed", $(void, (const char ** s, Evas_Object * ob) { \
-		if (*s) free(*s); \
+		if (*s) free((void *)*s); \
 		*s = strdup(elm_object_text_get(ob)); \
 		elm_genlist_realized_items_update(tree); \
 	}), &($var)); \
