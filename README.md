@@ -1,5 +1,5 @@
 # tramee - Traditional Chinese Family Tree
-Tramee is a <b>tr</b>aditional Chinese f<b>am</b> ily tr<b>ee</b> software.
+Tramee is a <b>tr</b>aditional Chinese f<b>am</b>ily tr<b>ee</b> software.
 
 It's a WYSIWY<b>T</b> program that, you input the logical structure and
 information of your family tree, and then run a generator to generate
