@@ -4,8 +4,12 @@
 #include "ui.h"
 
 
+
+
 Tree * root;
 const char * filename;
+
+
 
 
 // simpler callback add
@@ -18,19 +22,15 @@ const char * filename;
 
 
 
+
 static Evas_Object * win;
 static Evas_Object * toolbar;
 static Evas_Object * tree;
 static Evas_Object * props;
 static Elm_Genlist_Item_Class * ic;
-#if 0
-static Evas_Object * stack;
-static Evas_Object * menu_node;
-static Elm_Object_Item * menu_add;
-static Elm_Object_Item * menu_delete;
-static Evas_Object * props_current;
 
-#endif
+
+
 
 EAPI_MAIN int elm_main(int argc, char * argv[]);
 
@@ -43,17 +43,16 @@ static void toolbar_no_selected();
 static void document_new(Tree * t);
 static void document_open(const char * fn);
 static void document_save(const char * fn);
-#if 0
-static Operator * op_find_by_name(const char * name);
-static void op_add(Operator * op, float * values);
 
-#endif
+
+
 
 void ui_run()
 {
 	ELM_MAIN()
 	main(0, NULL);
 }
+
 
 EAPI_MAIN int elm_main(int argc, char * argv[])
 {
@@ -83,17 +82,20 @@ EAPI_MAIN int elm_main(int argc, char * argv[])
 			filename = NULL;
 			document_new(tree_new(NULL));
 		}), NULL);
+
 	elm_toolbar_item_append(toolbar, NULL, "打开",
 		(void *)$(void, () {
 			toolbar_no_selected();
 			popup_file_selector("打开什么？", false, &document_open);
 		}), NULL);
+
 	elm_toolbar_item_append(toolbar, NULL, "保存",
 		(void *)$(void, () {
 			toolbar_no_selected();
 			if (filename) document_save(filename);
 			else popup_file_selector("保存到哪？", true, &document_save);
 		}), NULL);
+
 	elm_toolbar_item_append(toolbar, NULL, "退出", (void *)&elm_exit, NULL);
 
 	//------------------- panes: in main vbox
@@ -111,16 +113,20 @@ EAPI_MAIN int elm_main(int argc, char * argv[])
 	// frame
 	$_(tree_frame, elm_frame_add(win));
 	elm_object_text_set(tree_frame, "家谱树");
-	evas_object_size_hint_weight_set(tree_frame, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-	evas_object_size_hint_align_set(tree_frame, EVAS_HINT_FILL, EVAS_HINT_FILL);
+	evas_object_size_hint_weight_set(tree_frame,
+			EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+	evas_object_size_hint_align_set(tree_frame,
+			EVAS_HINT_FILL, EVAS_HINT_FILL);
 	elm_object_part_content_set(panes, "left", tree_frame);
 	evas_object_show(tree_frame);
 
 	// genlist
 	tree = elm_genlist_add(win);
 	elm_genlist_tree_effect_enabled_set(tree, EINA_TRUE);
-	evas_object_size_hint_weight_set(tree, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-	evas_object_size_hint_fill_set(tree, EVAS_HINT_FILL, EVAS_HINT_FILL);
+	evas_object_size_hint_weight_set(tree,
+			EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+	evas_object_size_hint_fill_set(tree,
+			EVAS_HINT_FILL, EVAS_HINT_FILL);
 	elm_object_content_set(tree_frame, tree);
 	evas_object_show(tree);
 
@@ -186,8 +192,8 @@ EAPI_MAIN int elm_main(int argc, char * argv[])
 			}
 		});
 
-	ic->func.state_get = NULL;
-	ic->func.del = NULL;	// TODO
+//	ic->func.state_get = NULL;
+//	ic->func.del = NULL;
 
 	// init genlist for expand
 	$$$$(tree, "expand,request",
@@ -216,41 +222,26 @@ EAPI_MAIN int elm_main(int argc, char * argv[])
 			elm_genlist_item_subitems_clear(item);
 		}), NULL);
 
-//	// add root item
-//	elm_genlist_item_append(tree, ic, root, NULL, ELM_GENLIST_ITEM_TREE, NULL, NULL);
-
 	//------------------- properties: in pane's bottom
 	// frame
 	$_(props_frame, elm_frame_add(win));
 	elm_object_text_set(props_frame, "属性");
-	evas_object_size_hint_weight_set(props_frame, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-	evas_object_size_hint_align_set(props_frame, EVAS_HINT_FILL, EVAS_HINT_FILL);
+	evas_object_size_hint_weight_set(props_frame,
+			EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+	evas_object_size_hint_align_set(props_frame,
+			EVAS_HINT_FILL, EVAS_HINT_FILL);
 	elm_object_part_content_set(panes, "right", props_frame);
 	evas_object_show(props_frame);
 
 	// scroller
 	props = elm_scroller_add(win);
-	evas_object_size_hint_weight_set(props, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-	evas_object_size_hint_fill_set(props, EVAS_HINT_FILL, EVAS_HINT_FILL);
+	evas_object_size_hint_weight_set(props,
+			EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+	evas_object_size_hint_fill_set(props,
+			EVAS_HINT_FILL, EVAS_HINT_FILL);
 	elm_object_content_set(props_frame, props);
 	evas_object_show(props);
-#if 0
-	//------------------- properties
-	// frame
-	$_(props_frame, elm_frame_add(win));
-	elm_object_text_set(props_frame, "Properties");
-	evas_object_size_hint_weight_set(props_frame, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-	evas_object_size_hint_align_set(props_frame, EVAS_HINT_FILL, EVAS_HINT_FILL);
-	elm_box_pack_end(content, props_frame);
-	evas_object_show(props_frame);
 
-	// scroller
-	props = elm_scroller_add(win);
-	evas_object_size_hint_weight_set(props, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-	evas_object_size_hint_fill_set(props, EVAS_HINT_FILL, EVAS_HINT_FILL);
-	elm_object_content_set(props_frame, props);
-	evas_object_show(props);
-#endif
 	//------------------- done!
 	evas_object_show(win);
 
@@ -263,6 +254,7 @@ EAPI_MAIN int elm_main(int argc, char * argv[])
 	return 0;
 }
 
+
 static Evas_Object * limit_min_size(Evas_Object * o, int w, int h)
 {
 	$_(table, elm_table_add(win));
@@ -273,11 +265,13 @@ static Evas_Object * limit_min_size(Evas_Object * o, int w, int h)
 	return table;
 }
 
+
 static void popup_message(const char * message)
 {
 	$_(popup, elm_popup_add(win));
 	elm_popup_orient_set(popup, ELM_POPUP_ORIENT_BOTTOM);
-	evas_object_size_hint_weight_set(popup, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+	evas_object_size_hint_weight_set(popup,
+			EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
 	elm_object_part_text_set(popup, "title,text", message);
 	evas_object_show(popup);
 
@@ -286,12 +280,14 @@ static void popup_message(const char * message)
 	}), NULL);
 }
 
+
 static void popup_file_selector(const char * title, bool is_save,
 								void done(const char * filename))
 {
 	$_(popup, elm_popup_add(win));
 	elm_popup_orient_set(popup, ELM_POPUP_ORIENT_TOP);
-	evas_object_size_hint_weight_set(popup, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+	evas_object_size_hint_weight_set(popup,
+			EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
 	elm_object_part_text_set(popup, "title,text", title);
 	$$$$(popup, "block,clicked", $(void, (void * $1, Evas_Object * o) {
 		evas_object_del(o);
@@ -314,7 +310,8 @@ static void popup_file_selector(const char * title, bool is_save,
 	evas_object_data_set(popup, "cb:done", done);
 	evas_object_data_set(popup, "cb:fs", fs);
 	$$$$(btn, "clicked", $(void, (Evas_Object * o) {
-		void (*done_cb)(const char * fn) = evas_object_data_get(o, "cb:done");
+		void (*done_cb)(const char * fn) =
+				evas_object_data_get(o, "cb:done");
 		Evas_Object * f = evas_object_data_get(o, "cb:fs");
 		done_cb(elm_fileselector_selected_get(f));
 		evas_object_del(o);
@@ -323,11 +320,13 @@ static void popup_file_selector(const char * title, bool is_save,
 	evas_object_show(popup);
 }
 
+
 static void toolbar_no_selected()
 {
 	$_(item, elm_toolbar_selected_item_get(toolbar));
 	if (item) elm_toolbar_item_selected_set(item, false);
 }
+
 
 static void document_new(Tree * t)
 {
@@ -339,6 +338,7 @@ static void document_new(Tree * t)
 	elm_genlist_item_append(tree, ic, root, NULL,
 			ELM_GENLIST_ITEM_TREE, NULL, NULL);
 }
+
 
 static void document_open(const char * fn)
 {
@@ -362,6 +362,7 @@ static void document_open(const char * fn)
 	popup_message("打开完毕。");
 }
 
+
 static void document_save(const char * fn)
 {
 	if (!fn) {
@@ -381,54 +382,3 @@ static void document_save(const char * fn)
 	popup_message("保存完毕。");
 }
 
-#if 0
-static Operator * op_find_by_name(const char * name)
-{
-	for (int i=0; i<ops_used; i++)
-		if (!strcmp(name, ops[i].name))
-			return &ops[i];
-	return NULL;
-}
-
-// values can be NULL if you want to use default value's copy
-static void op_add(Operator * op, float * values)
-{
-	void node_select_cb()
-	{
-		$_(o, elm_menu_item_object_get(elm_list_selected_item_get(nodes)));
-		Operator * op = evas_object_data_get(o, "ipu:operator");
-
-		// switch properties editing widgets to the selected's
-		if (props_current) {
-			elm_object_content_unset(props);
-			evas_object_hide(props_current);
-		}
-		props_current = op->table;
-		elm_object_content_set(props, props_current);
-
-		// set properties
-		float * values = evas_object_data_get(o, "ipu:v");
-		for (int i=0; i<op->nprop; i++)
-			elm_spinner_value_set(op->objs[i], values[i]);
-
-		// then, show it
-		evas_object_show(props_current);
-
-		execute_nodes();
-	};
-
-	$_(o, elm_menu_item_object_get(elm_list_item_append(nodes,
-			op->name, NULL, NULL, (void *)&node_select_cb, NULL)));
-
-	// setup datas needed
-	// operator
-	evas_object_data_set(o, "ipu:operator", op);
-	// values
-	if (!values) {
-		values = new(float, * op->nprop);
-		for (int i=0; i<op->nprop; i++)
-			values[i] = op->infos[i].value;
-	}
-	evas_object_data_set(o, "ipu:v", values);
-}
-#endif
