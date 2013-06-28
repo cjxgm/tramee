@@ -394,33 +394,30 @@ static void edit(Tree * t)
 	evas_object_size_hint_fill_set(table,
 			EVAS_HINT_FILL, EVAS_HINT_FILL);
 
-	int i = 0;
-
-#define EDIT_INIT($label) ({ \
+#define EDIT_INIT($label, $x, $y) ({ \
 	$_(label, elm_label_add(win)); \
 	elm_object_scale_set(label, 1.2); \
 	evas_object_size_hint_padding_set(label, 5, 0, 0, 0); \
-	elm_object_text_set(label, $label "："); \
-	elm_table_pack(table, label, 0, i, 1, 1); \
+	elm_object_text_set(label, "<font color=#48c>" $label "</>"); \
+	elm_table_pack(table, label, ($x)<<1, ($y), 1, 1); \
 	evas_object_show(label); \
 })
-#define EDIT_DONE() ({ \
+#define EDIT_DONE($x, $y) ({ \
 	evas_object_size_hint_weight_set(ob, \
 			EVAS_HINT_EXPAND, EVAS_HINT_EXPAND); \
 	evas_object_size_hint_fill_set(ob, \
 			EVAS_HINT_FILL, EVAS_HINT_FILL); \
 	evas_object_size_hint_padding_set(ob, 5, 5, 5, 0); \
-	elm_table_pack(table, ob, 1, i, 1, 1); \
+	elm_table_pack(table, ob, ($x)<<1 | 1, ($y), 1, 1); \
 	evas_object_show(ob); \
-	i++; \
 })
 
-#define EDIT_TEXT($label, $var) ({ \
-	EDIT_INIT($label); \
+#define EDIT_TEXT($label, $x, $y, $var) ({ \
+	EDIT_INIT($label, $x, $y); \
 	$_(ob, elm_entry_add(win)); \
 	elm_entry_single_line_set(ob, EINA_TRUE); \
 	elm_object_text_set(ob, ($var)); \
-	EDIT_DONE(); \
+	EDIT_DONE($x, $y); \
  \
 	$$$$(ob, "changed", $(void, (const char ** s, Evas_Object * ob) { \
 		if (*s) free((void *)*s); \
@@ -428,12 +425,12 @@ static void edit(Tree * t)
 		elm_genlist_realized_items_update(tree); \
 	}), &($var)); \
 })
-#define EDIT_UINT($label, $var) ({ \
-	EDIT_INIT($label); \
+#define EDIT_UINT($label, $x, $y, $var) ({ \
+	EDIT_INIT($label, $x, $y); \
 	$_(ob, elm_slider_add(win)); \
 	elm_slider_min_max_set(ob, 0, 6); \
 	elm_slider_value_set(ob, ($var)); \
-	EDIT_DONE(); \
+	EDIT_DONE($x, $y); \
  \
 	$$$$(ob, "changed", $(void, (size_t * s, Evas_Object * ob) { \
 		*s = round(elm_slider_value_get(ob)); \
@@ -453,9 +450,9 @@ static void edit(Tree * t)
 })
 
 	//-------------- EDIT HERE ----------------
-	EDIT_TEXT("姓名", t->name);
-	EDIT_TEXT("妻子", t->wife);
-	EDIT_UINT("女儿数", t->ngirl);
+	EDIT_TEXT("姓名", 0, 0, t->name);
+	EDIT_TEXT("妻子", 1, 0, t->wife);
+	EDIT_UINT("女数", 2, 0, t->ngirl);
 	//-------------- EDIT DONE ----------------
 
 	elm_object_content_set(props, table);
