@@ -43,6 +43,7 @@ static void toolbar_no_selected();
 static void document_new(Tree * t);
 static void document_open(const char * fn);
 static void document_save(const char * fn);
+static void edit(Tree * t);
 
 
 
@@ -159,7 +160,7 @@ EAPI_MAIN int elm_main(int argc, char * argv[])
 					$_(item, elm_genlist_selected_item_get(tree));
 					if (elm_genlist_item_expanded_get(item))
 						elm_genlist_item_append(tree, ic, boy, item,
-								ELM_GENLIST_ITEM_TREE, NULL, NULL);
+								ELM_GENLIST_ITEM_TREE, (void *)&edit, boy);
 					elm_genlist_item_expanded_set(item, EINA_TRUE);
 					elm_genlist_realized_items_update(tree);
 				}), t);
@@ -175,18 +176,19 @@ EAPI_MAIN int elm_main(int argc, char * argv[])
 					tree_free(t);
 					elm_object_item_del(item);
 
+					elm_genlist_realized_items_update(tree);
+					elm_object_content_set(props, NULL);
+
 					if (!parent) {
 						root = tree_new(NULL);
 						elm_genlist_item_append(tree, ic, root, NULL,
-								ELM_GENLIST_ITEM_TREE, NULL, NULL);
+								ELM_GENLIST_ITEM_TREE, (void *)&edit, root);
 						return;
 					}
 
 					Tree * pa = elm_object_item_data_get(parent);
 					if (!pack_length(pa->boys))
 						elm_genlist_item_expanded_set(parent, EINA_FALSE);
-
-					elm_genlist_realized_items_update(tree);
 				}), t);
 				return btn;
 			}
@@ -205,7 +207,7 @@ EAPI_MAIN int elm_main(int argc, char * argv[])
 			Tree * t = elm_object_item_data_get(item);
 			pack_walk(t->boys, Tree, boy, {
 				elm_genlist_item_append(tree, ic, boy, item,
-						ELM_GENLIST_ITEM_TREE, NULL, NULL);
+						ELM_GENLIST_ITEM_TREE, (void *)&edit, boy);
 			});
 		}), NULL);
 
@@ -333,7 +335,8 @@ static void document_new(Tree * t)
 	root = t;
 
 	elm_genlist_item_append(tree, ic, root, NULL,
-			ELM_GENLIST_ITEM_TREE, NULL, NULL);
+			ELM_GENLIST_ITEM_TREE, (void *)&edit, root);
+	elm_object_content_set(props, NULL);
 }
 
 
@@ -377,5 +380,62 @@ static void document_save(const char * fn)
 	}
 
 	popup_message("保存完毕。");
+}
+
+
+static void edit(Tree * t)
+{
+	$_(table, elm_table_add(win));
+	evas_object_size_hint_weight_set(table,
+			EVAS_HINT_EXPAND, 0);
+	evas_object_size_hint_fill_set(table,
+			EVAS_HINT_FILL, EVAS_HINT_FILL);
+
+	int i = 0;
+
+#define EDIT_INIT($label) ({ \
+	$_(label, elm_label_add(win)); \
+	evas_object_size_hint_padding_set(label, 5, 0, 0, 0); \
+	elm_object_text_set(label, $label "："); \
+	elm_table_pack(table, label, 0, i, 1, 1); \
+	evas_object_show(label); \
+})
+#define EDIT_DONE() ({ \
+	evas_object_size_hint_weight_set(ob, \
+			EVAS_HINT_EXPAND, EVAS_HINT_EXPAND); \
+	evas_object_size_hint_fill_set(ob, \
+			EVAS_HINT_FILL, EVAS_HINT_FILL); \
+	evas_object_size_hint_padding_set(ob, 5, 5, 5, 0); \
+	elm_table_pack(table, ob, 1, i, 1, 1); \
+	evas_object_show(ob); \
+	i++; \
+})
+
+#define EDIT_TEXT($label, $var) ({ \
+	EDIT_INIT($label); \
+	$_(ob, elm_entry_add(win)); \
+	elm_entry_single_line_set(ob, EINA_TRUE); \
+	elm_object_text_set(ob, ($var)); \
+	EDIT_DONE(); \
+})
+#define EDIT_UINT($label, $var) ({ \
+	EDIT_INIT($label); \
+	$_(ob, elm_spinner_add(win)); \
+	elm_spinner_min_max_set(ob, 0, 9); \
+	elm_spinner_round_set(ob, 1); \
+	elm_spinner_step_set(ob, 1); \
+	elm_spinner_label_format_set(ob, "%0.0g"); \
+	elm_spinner_value_set(ob, ($var)); \
+	EDIT_DONE(); \
+})
+
+	//-------------- EDIT HERE ----------------
+	EDIT_TEXT("姓名", t->name);
+	EDIT_TEXT("妻子", t->wife);
+	EDIT_UINT("女儿数", t->ngirl);
+	//-------------- EDIT DONE ----------------
+
+	elm_object_content_set(props, table);
+	evas_object_show(table);
 }
 
