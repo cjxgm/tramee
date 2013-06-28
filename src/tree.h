@@ -40,6 +40,17 @@ void   tree_free(Tree * tree);
 
 /***************************************************
  *
+ * properties
+ *
+ */
+
+// the folowing 2 functions will do strdup on "name"
+void tree_set_name(Tree * tree, const char * name);
+void tree_set_wife(Tree * tree, const char * wife);
+
+
+/***************************************************
+ *
  * io
  *
  */

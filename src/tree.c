@@ -17,8 +17,8 @@ Tree * tree_new(Tree * parent)
 	tree->parent = parent;
 	tree->boys   = pack_new();
 
-	tree->name  = "无名氏";
-	tree->wife  = "无名氏";
+	tree->name  = strdup("无名氏");
+	tree->wife  = strdup("无名氏");
 	tree->ngirl = 0;
 
 	if (parent) pack_add_tail(parent->boys, tree);
@@ -34,6 +34,9 @@ void tree_free(Tree * tree)
 	void del(Tree * t)
 	{
 		pack_walk(t->boys, Tree, tt, del(tt););
+		pack_free(t->boys);
+		free((void *)t->name);
+		free((void *)t->wife);
 		free(t);
 	}
 	del(tree);
@@ -43,6 +46,28 @@ void tree_free(Tree * tree)
 			if (tt == tree)
 				pack_delete_me();
 		});
+}
+
+
+/***************************************************
+ *
+ * properties
+ *
+ */
+
+void tree_set_name(Tree * tree, const char * name)
+{
+	if (tree->name) free((void *)tree->name);
+	if (name) tree->name = strdup(name);
+	else tree->name = NULL;
+}
+
+
+void tree_set_wife(Tree * tree, const char * wife)
+{
+	if (tree->wife) free((void *)tree->wife);
+	if (wife) tree->wife = strdup(wife);
+	else tree->wife = NULL;
 }
 
 
