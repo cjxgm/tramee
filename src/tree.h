@@ -35,6 +35,7 @@ struct Tree
  */
 
 Tree * tree_new(Tree * parent);
+void   tree_free(Tree * tree);
 
 
 /***************************************************

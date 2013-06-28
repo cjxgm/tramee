@@ -27,6 +27,26 @@ Tree * tree_new(Tree * parent)
 }
 
 
+void tree_free(Tree * tree)
+{
+	Tree * pa = tree->parent;
+
+	void del(Tree * t)
+	{
+		pack_walk(t->boys, Tree, tt, del(tt););
+		// TODO: free t->name...
+		free(t);
+	}
+	del(tree);
+
+	if (pa)
+		pack_walk(pa->boys, Tree, tt, {
+			if (tt == tree)
+				pack_delete_me();
+		});
+}
+
+
 /***************************************************
  *
  * io

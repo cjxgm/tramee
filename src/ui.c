@@ -75,21 +75,21 @@ EAPI_MAIN int elm_main(int argc, char * argv[])
 	evas_object_show(toolbar);
 
 	// toolbar items
-	elm_toolbar_item_append(toolbar, "document-new", "新建",
+	elm_toolbar_item_append(toolbar, NULL, "新建",
 		(void *)$(void, () {
 			toolbar_no_selected();
 		}), NULL);
-	elm_toolbar_item_append(toolbar, "document-open", "打开",
+	elm_toolbar_item_append(toolbar, NULL, "打开",
 		(void *)$(void, () {
 			toolbar_no_selected();
 			popup_file_selector("打开什么？", false, NULL);
 		}), NULL);
-	elm_toolbar_item_append(toolbar, "document-save", "保存",
+	elm_toolbar_item_append(toolbar, NULL, "保存",
 		(void *)$(void, () {
 			toolbar_no_selected();
 			popup_file_selector("保存到哪？", true, NULL);
 		}), NULL);
-	elm_toolbar_item_append(toolbar, "edit-delete", "退出", (void *)&elm_exit, NULL);
+	elm_toolbar_item_append(toolbar, NULL, "退出", (void *)&elm_exit, NULL);
 
 	//------------------- panes: in main vbox
 	$_(panes, elm_panes_add(win));
@@ -146,11 +146,11 @@ EAPI_MAIN int elm_main(int argc, char * argv[])
 				$$$$(btn, "clicked", $(void, (Tree * t) {
 					$_(boy, tree_new(t));
 					$_(item, elm_genlist_selected_item_get(tree));
-					elm_genlist_item_update(item);
 					if (elm_genlist_item_expanded_get(item))
 						elm_genlist_item_append(tree, ic, boy, item,
 								ELM_GENLIST_ITEM_TREE, NULL, NULL);
 					elm_genlist_item_expanded_set(item, EINA_TRUE);
+					elm_genlist_realized_items_update(tree);
 				}), t);
 				return btn;
 			}
@@ -160,14 +160,22 @@ EAPI_MAIN int elm_main(int argc, char * argv[])
 				$$$$(btn, "clicked", $(void, (Tree * t) {
 					$_(item, elm_genlist_selected_item_get(tree));
 					$_(parent, elm_genlist_item_parent_get(item));
-					if (!parent) return;
 
-					//tree_delete(t);
+					tree_free(t);
 					elm_object_item_del(item);
+
+					if (!parent) {
+						root = tree_new(NULL);
+						elm_genlist_item_append(tree, ic, root, NULL,
+								ELM_GENLIST_ITEM_TREE, NULL, NULL);
+						return;
+					}
 
 					Tree * pa = elm_object_item_data_get(parent);
 					if (!pack_length(pa->boys))
 						elm_genlist_item_expanded_set(parent, EINA_FALSE);
+
+					elm_genlist_realized_items_update(tree);
 				}), t);
 				return btn;
 			}
