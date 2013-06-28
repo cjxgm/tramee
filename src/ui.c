@@ -417,6 +417,12 @@ static void edit(Tree * t)
 	elm_entry_single_line_set(ob, EINA_TRUE); \
 	elm_object_text_set(ob, ($var)); \
 	EDIT_DONE(); \
+ \
+	$$$$(ob, "changed", $(void, (const char ** s, Evas_Object * ob) { \
+		if (*s) free(*s); \
+		*s = strdup(elm_object_text_get(ob)); \
+		elm_genlist_realized_items_update(tree); \
+	}), &($var)); \
 })
 #define EDIT_UINT($label, $var) ({ \
 	EDIT_INIT($label); \
@@ -427,6 +433,11 @@ static void edit(Tree * t)
 	elm_spinner_label_format_set(ob, "%0.0g"); \
 	elm_spinner_value_set(ob, ($var)); \
 	EDIT_DONE(); \
+ \
+	$$$$(ob, "changed", $(void, (size_t * s, Evas_Object * ob) { \
+		*s = elm_spinner_value_get(ob); \
+		elm_genlist_realized_items_update(tree); \
+	}), &($var)); \
 })
 
 	//-------------- EDIT HERE ----------------

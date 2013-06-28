@@ -3,6 +3,7 @@
 #ifndef __TRAMEE$TREE__
 #define __TRAMEE$TREE__
 
+#include <unistd.h>
 #include "pack.h"
 
 
@@ -24,7 +25,7 @@ struct Tree
 	// information
 	const char * name;
 	const char * wife;
-	int ngirl;
+	size_t ngirl;
 };
 
 
