@@ -34,7 +34,6 @@ void tree_free(Tree * tree)
 	void del(Tree * t)
 	{
 		pack_walk(t->boys, Tree, tt, del(tt););
-		// TODO: free t->name...
 		free(t);
 	}
 	del(tree);
