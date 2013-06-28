@@ -5,6 +5,7 @@
 
 
 Tree * root;
+const char * filename;
 
 
 // simpler callback add
@@ -39,10 +40,10 @@ static void popup_file_selector(const char * title, bool is_save,
 								void done(const char * filename));
 static void toolbar_no_selected();
 
-#if 0
-static void document_new();
+static void document_new(Tree * t);
 static void document_open(const char * fn);
 static void document_save(const char * fn);
+#if 0
 static Operator * op_find_by_name(const char * name);
 static void op_add(Operator * op, float * values);
 
@@ -78,16 +79,20 @@ EAPI_MAIN int elm_main(int argc, char * argv[])
 	elm_toolbar_item_append(toolbar, NULL, "新建",
 		(void *)$(void, () {
 			toolbar_no_selected();
+			if (filename) free((void *)filename);
+			filename = NULL;
+			document_new(tree_new(NULL));
 		}), NULL);
 	elm_toolbar_item_append(toolbar, NULL, "打开",
 		(void *)$(void, () {
 			toolbar_no_selected();
-			popup_file_selector("打开什么？", false, NULL);
+			popup_file_selector("打开什么？", false, &document_open);
 		}), NULL);
 	elm_toolbar_item_append(toolbar, NULL, "保存",
 		(void *)$(void, () {
 			toolbar_no_selected();
-			popup_file_selector("保存到哪？", true, NULL);
+			if (filename) document_save(filename);
+			else popup_file_selector("保存到哪？", true, &document_save);
 		}), NULL);
 	elm_toolbar_item_append(toolbar, NULL, "退出", (void *)&elm_exit, NULL);
 
@@ -211,8 +216,8 @@ EAPI_MAIN int elm_main(int argc, char * argv[])
 			elm_genlist_item_subitems_clear(item);
 		}), NULL);
 
-	// add root item
-	elm_genlist_item_append(tree, ic, root, NULL, ELM_GENLIST_ITEM_TREE, NULL, NULL);
+//	// add root item
+//	elm_genlist_item_append(tree, ic, root, NULL, ELM_GENLIST_ITEM_TREE, NULL, NULL);
 
 	//------------------- properties: in pane's bottom
 	// frame
@@ -248,6 +253,9 @@ EAPI_MAIN int elm_main(int argc, char * argv[])
 #endif
 	//------------------- done!
 	evas_object_show(win);
+
+	if (filename) document_open(filename);
+	else document_new(tree_new(NULL));
 
 	elm_run();
 	elm_shutdown();
@@ -321,93 +329,59 @@ static void toolbar_no_selected()
 	if (item) elm_toolbar_item_selected_set(item, false);
 }
 
-#if 0
-static void document_new()
+static void document_new(Tree * t)
 {
-	if (props_current) {
-		elm_object_content_unset(props);
-		evas_object_hide(props_current);
-	}
-	elm_table_clear(stack, true);
+	elm_genlist_clear(tree);
+	if (root) tree_free(root);
 
-	Elm_Object_Item * item;
-	while ((item = elm_list_last_item_get(nodes))) {
-		$_(o, elm_menu_item_object_get(item));
-		free(evas_object_data_get(o, "ipu:v"));
-		elm_object_item_del(item);
-	}
-	elm_list_go(nodes);
+	root = t;
+
+	elm_genlist_item_append(tree, ic, root, NULL,
+			ELM_GENLIST_ITEM_TREE, NULL, NULL);
 }
 
 static void document_open(const char * fn)
 {
 	if (!fn) {
-		popup_message("So, what on earth are you fucking to open?!!");
+		popup_message("你他妈到底想打开什么？！！");
 		return;
 	}
 
-	FILE * fp = fopen(fn, "r");
-	if (!fp) {
-		popup_message("Cannot open that.");
+	Tree * t = tree_load(fn);
+	if (!t) {
+		popup_message("打开你妹啊！");
 		return;
 	}
+	document_new(t);
 
-	document_new();
-
-	char op_name[64];
-	while (fscanf(fp, "%63s", op_name) != EOF) {
-		$_(op, op_find_by_name(op_name));
-		if (!op) {
-			fclose(fp);
-			popup_message("Invalid file!");
-			return;
-		}
-
-		float * values = new(float, * op->nprop);
-		for (int i=0; i<op->nprop; i++)
-			fscanf(fp, "%g", &values[i]);
-		op_add(op, values);
+	if (filename != fn) {
+		if (filename) free((void *)filename);
+		filename = strdup(fn);
 	}
 
-	fclose(fp);
-	popup_message("Opened!");
-
-	elm_list_go(nodes);
-	elm_list_item_bring_in(elm_list_last_item_get(nodes));
-	execute_nodes();
+	popup_message("打开完毕。");
 }
 
 static void document_save(const char * fn)
 {
 	if (!fn) {
-		popup_message("So, why you clicked the fucking save?!!");
+		popup_message("你他妈到底想保存什么？！！");
 		return;
 	}
 
-	FILE * fp = fopen(fn, "w");
-	if (!fp) {
-		popup_message("Cannot save to there.");
+	if (tree_save(root, fn)) {
+		popup_message("保存你妹啊！");
 		return;
 	}
-
-	$_(item, elm_list_first_item_get(nodes));
-	while (item) {
-		$_(o, elm_menu_item_object_get(item));
-		Operator * op  = evas_object_data_get(o, "ipu:operator");
-		float * values = evas_object_data_get(o, "ipu:v");
-
-		fprintf(fp, "%s", op->name);
-		for (int i=0; i<op->nprop; i++)
-			fprintf(fp, " %g", values[i]);
-		fprintf(fp, "\n");
-
-		item = elm_list_item_next(item);
+	if (filename != fn) {
+		if (filename) free((void *)filename);
+		filename = strdup(fn);
 	}
 
-	fclose(fp);
-	popup_message("Saved!");
+	popup_message("保存完毕。");
 }
 
+#if 0
 static Operator * op_find_by_name(const char * name)
 {
 	for (int i=0; i<ops_used; i++)

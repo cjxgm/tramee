@@ -26,7 +26,7 @@ main()
 	gen "reconf:"
 	gen -e "\t./configure"
 	gen "test: all"
-	gen -e "\t./build/tramee"
+	gen -e "\t./build/tramee ./example/test.tramee"
 	gen "commit: cleanall"
 	gen -e "\tgit add ."
 	gen -e "\tgit diff --cached"
