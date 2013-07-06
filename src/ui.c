@@ -19,15 +19,18 @@ const char * filename;
 #define $$$($object, $event, $callback, $arg) \
 	evas_object_event_callback_add($object, $event, \
 			(void *)($callback), (void *)($arg))
+#define ANY (void *)
 
 
 
 
-static Evas_Object * win;
-static Evas_Object * toolbar;
-static Evas_Object * tree;
-static Evas_Object * props;
+<<<<<<
+static win      :* win;
+static toolbar  :* toolbar;
+static genlist  :* tree;
+static scroller :* props;
 static Elm_Genlist_Item_Class * ic;
+>>>>>>
 
 
 static const char * number_lookup[] = {
@@ -68,79 +71,84 @@ void ui_run()
 
 EAPI_MAIN int elm_main(int argc, char * argv[])
 {
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 	//------------------- main window
-	win = elm_win_util_standard_add("ipu", "Image Proc Unit");
-	evas_object_resize(win, 800, 600);
-	$$$$(win, "delete,request", &elm_exit, NULL);
+	{ __ :+ win(NULL, "tramee", ::BASIC); win = __; }
+	win :  title("tramee");
+	win :  resize(800, 600);
+	win :- delete,request(ANY elm_exit, NULL);
+
+	bg  :+ bg(win);
+	bg  :  hint_weight(::HINT_EXPAND, ::HINT_EXPAND);
+	win :  resize_object(bg);
+	bg  :  show;
 
 	//------------------- main vbox
-	$_(box, elm_box_add(win));
-	evas_object_size_hint_weight_set(box,
-			EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-	elm_win_resize_object_add(win, box);
-	evas_object_show(box);
+	box :+ box(win);
+	box :  hint_weight(::HINT_EXPAND, ::HINT_EXPAND);
+	win :  resize_object(box);
+	box :  show;
 
-	//------------------- toolbar: in main vbox
-	toolbar = elm_toolbar_add(win);
-	evas_object_size_hint_align_set(toolbar, EVAS_HINT_FILL, 0);
-	elm_box_pack_end(box, toolbar);
-	evas_object_show(toolbar);
-
+	//------------------- toolbar in main vbox
+	toolbar :+ toolbar(win);
+	toolbar :  hint_align(::HINT_FILL, 0);
+	box     :  pack_end(toolbar);
+	toolbar :  show;
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 	// toolbar items
-	elm_toolbar_item_append(toolbar, NULL, "新建",
-		(void *)$(void, () {
-			toolbar_no_selected();
-			if (filename) free((void *)filename);
-			filename = NULL;
-			document_new(tree_new(NULL));
-		}), NULL);
+	void on_toolbar_new()
+	{
+		toolbar_no_selected();
+		if (filename) free(ANY filename);
+		filename = NULL;
+		document_new(tree_new(NULL));
+	}
+	void on_toolbar_open()
+	{
+		toolbar_no_selected();
+		popup_file_selector("打开什么？", false, &document_open);
+	}
+	void on_toolbar_save()
+	{
+		toolbar_no_selected();
+		if (filename) document_save(filename);
+		else popup_file_selector("保存到哪？", true, &document_save);
+	}
 
-	elm_toolbar_item_append(toolbar, NULL, "打开",
-		(void *)$(void, () {
-			toolbar_no_selected();
-			popup_file_selector("打开什么？", false, &document_open);
-		}), NULL);
-
-	elm_toolbar_item_append(toolbar, NULL, "保存",
-		(void *)$(void, () {
-			toolbar_no_selected();
-			if (filename) document_save(filename);
-			else popup_file_selector("保存到哪？", true, &document_save);
-		}), NULL);
-
-	elm_toolbar_item_append(toolbar, NULL, "退出", (void *)&elm_exit, NULL);
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+	toolbar :  item_append(NULL, "新建", ANY on_toolbar_new , NULL);
+	toolbar :  item_append(NULL, "打开", ANY on_toolbar_open, NULL);
+	toolbar :  item_append(NULL, "保存", ANY on_toolbar_save, NULL);
+	toolbar :  item_append(NULL, "退出", ANY elm_exit       , NULL);
 
 	//------------------- panes: in main vbox
-	$_(panes, elm_panes_add(win));
-	elm_panes_horizontal_set(panes, EINA_TRUE);
-	evas_object_size_hint_weight_set(panes,
-			EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-	evas_object_size_hint_align_set(panes,
-			EVAS_HINT_FILL, EVAS_HINT_FILL);
-	elm_win_resize_object_add(win, panes);
-	elm_box_pack_end(box, panes);
-	evas_object_show(panes);
+	panes :+ panes(win);
+	panes :  horizontal(true);
+	panes :  hint_weight(::HINT_EXPAND, ::HINT_EXPAND);
+	panes :  hint_align (::HINT_FILL  , ::HINT_FILL  );
+	win   :  resize_object(panes);
+	box   :  pack_end(panes);
+	panes :  show;
 
 	//------------------- tree: in pane's top
-	// frame
-	$_(tree_frame, elm_frame_add(win));
-	elm_object_text_set(tree_frame, "家谱树");
-	evas_object_size_hint_weight_set(tree_frame,
-			EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-	evas_object_size_hint_align_set(tree_frame,
-			EVAS_HINT_FILL, EVAS_HINT_FILL);
-	elm_object_part_content_set(panes, "left", tree_frame);
-	evas_object_show(tree_frame);
+	{
+		// frame
+		frame :+ frame(win);
+		frame :  text("家谱树");
+		frame :  hint_weight(::HINT_EXPAND, ::HINT_EXPAND);
+		frame :  hint_align (::HINT_FILL  , ::HINT_FILL  );
+		panes :  part_content_set("left", frame);
+		frame :  show;
 
-	// genlist
-	tree = elm_genlist_add(win);
-	elm_genlist_tree_effect_enabled_set(tree, EINA_TRUE);
-	evas_object_size_hint_weight_set(tree,
-			EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-	evas_object_size_hint_fill_set(tree,
-			EVAS_HINT_FILL, EVAS_HINT_FILL);
-	elm_object_content_set(tree_frame, tree);
-	evas_object_show(tree);
+		// genlist
+		{ __ :+ genlist(win); tree = __; }
+		tree :  tree_effect_enabled(true);
+		tree :  hint_weight(::HINT_EXPAND, ::HINT_EXPAND);
+		tree :  hint_align (::HINT_FILL  , ::HINT_FILL  );
+		frame:  content(tree);
+		tree :  show;
+	}
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 	// init item class
 	ic = elm_genlist_item_class_new();
@@ -153,49 +161,53 @@ EAPI_MAIN int elm_main(int argc, char * argv[])
 		return strdup(str);
 	});
 
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 	ic->func.content_get =
 		(void *)$(Evas_Object *, (Tree * t, void * $2, const char * part) {
 			if (!strcmp(part, "elm.swallow.icon")) {
-				$_(btn, elm_button_add(win));
-				elm_object_text_set(btn, "生子");
+				btn :+ button(win);
+				btn :  text("生子");
 				$$$$(btn, "clicked", $(void, (Tree * t) {
 					$_(boy, tree_new(t));
-					$_(item, elm_genlist_selected_item_get(tree));
-					if (elm_genlist_item_expanded_get(item))
-						elm_genlist_item_append(tree, ic, boy, item,
-								ELM_GENLIST_ITEM_TREE, (void *)&edit, boy);
-					elm_genlist_item_expanded_set(item, EINA_TRUE);
-					elm_genlist_realized_items_update(tree);
+					$_(item, tree::selected_item);
+					item := genlist_item;
+					if (item::expanded)
+						tree: item_append(ic, boy, item, ELM_GENLIST_ITEM_TREE, (void *)&edit, boy);
+					item: expanded(true);
+					tree: realized_items_update;
 				}), t);
 				return btn;
 			}
 			else {
-				$_(btn, elm_button_add(win));
-				elm_object_text_set(btn, "删除");
+				btn :+ button(win);
+				btn :  text("删除");
 				$$$$(btn, "clicked", $(void, (Tree * t) {
-					$_(item, elm_genlist_selected_item_get(tree));
-					$_(parent, elm_genlist_item_parent_get(item));
+					$_(item, tree::selected_item);
+					item := genlist_item;
+					$_(parent, item::parent);
+					parent := genlist_item;
 
 					tree_free(t);
-					elm_object_item_del(item);
+					item: item_del;
+					//elm_object_item_del(item);
 
-					elm_genlist_realized_items_update(tree);
-					elm_object_content_set(props, NULL);
+					tree : realized_items_update;
+					props: content(NULL);
 
 					if (!parent) {
 						root = tree_new(NULL);
-						elm_genlist_item_append(tree, ic, root, NULL,
-								ELM_GENLIST_ITEM_TREE, (void *)&edit, root);
+						tree: item_append(ic, root, NULL, ELM_GENLIST_ITEM_TREE, (void *)&edit, root);
 						return;
 					}
 
-					Tree * pa = elm_object_item_data_get(parent);
+					Tree * pa = parent::item_data;
 					if (!pack_length(pa->boys))
-						elm_genlist_item_expanded_set(parent, EINA_FALSE);
+						parent: expanded(false);
 				}), t);
 				return btn;
 			}
 		});
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 	// init genlist for expand
 	$$$$(tree, "expand,request",
