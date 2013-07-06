@@ -24,13 +24,13 @@ const char * filename;
 
 
 
-<<<<<<
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 static win      :* win;
 static toolbar  :* toolbar;
 static genlist  :* tree;
 static scroller :* props;
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 static Elm_Genlist_Item_Class * ic;
->>>>>>
 
 
 static const char * number_lookup[] = {
@@ -90,11 +90,12 @@ EAPI_MAIN int elm_main(int argc, char * argv[])
 	box :  show;
 
 	//------------------- toolbar in main vbox
-	toolbar :+ toolbar(win);
+	{ _____ :+ toolbar(win); toolbar = _____; }
 	toolbar :  hint_align(::HINT_FILL, 0);
 	box     :  pack_end(toolbar);
 	toolbar :  show;
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
 	// toolbar items
 	void on_toolbar_new()
 	{
@@ -116,10 +117,10 @@ EAPI_MAIN int elm_main(int argc, char * argv[])
 	}
 
 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-	toolbar :  item_append(NULL, "新建", ANY on_toolbar_new , NULL);
-	toolbar :  item_append(NULL, "打开", ANY on_toolbar_open, NULL);
-	toolbar :  item_append(NULL, "保存", ANY on_toolbar_save, NULL);
-	toolbar :  item_append(NULL, "退出", ANY elm_exit       , NULL);
+	toolbar: item_append(NULL, "新建", ANY on_toolbar_new , NULL);
+	toolbar: item_append(NULL, "打开", ANY on_toolbar_open, NULL);
+	toolbar: item_append(NULL, "保存", ANY on_toolbar_save, NULL);
+	toolbar: item_append(NULL, "退出", ANY elm_exit       , NULL);
 
 	//------------------- panes: in main vbox
 	panes :+ panes(win);
@@ -147,49 +148,49 @@ EAPI_MAIN int elm_main(int argc, char * argv[])
 		tree :  hint_align (::HINT_FILL  , ::HINT_FILL  );
 		frame:  content(tree);
 		tree :  show;
+		item := genlist_item;
 	}
->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 	// init item class
 	ic = elm_genlist_item_class_new();
 	ic->item_style = "tree_effect";
+	{
+		const char * text_get(Tree * t)
+		{
+			static char str[64];
+			snprintf(str, 32, "%s：%s子%s女", t->name,
+					lookup(pack_length(t->boys)), lookup(t->ngirl));
+			return strdup(str);
+		}
 
-	ic->func.text_get = (void *)$(const char *, (Tree * t) {
-		static char str[64];
-		snprintf(str, 32, "%s：%s子%s女", t->name,
-				lookup(pack_length(t->boys)), lookup(t->ngirl));
-		return strdup(str);
-	});
-
-<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-	ic->func.content_get =
-		(void *)$(Evas_Object *, (Tree * t, void * $2, const char * part) {
+		Evas_Object * content_get(Tree * t, SKIP, const char * part)
+		{
 			if (!strcmp(part, "elm.swallow.icon")) {
 				btn :+ button(win);
 				btn :  text("生子");
-				$$$$(btn, "clicked", $(void, (Tree * t) {
+				void on_click(Tree * t)
+				{
 					$_(boy, tree_new(t));
 					$_(item, tree::selected_item);
-					item := genlist_item;
 					if (item::expanded)
 						tree: item_append(ic, boy, item, ELM_GENLIST_ITEM_TREE, (void *)&edit, boy);
 					item: expanded(true);
 					tree: realized_items_update;
-				}), t);
+				}
+				btn :- clicked(ANY on_click, t);
 				return btn;
 			}
 			else {
 				btn :+ button(win);
 				btn :  text("删除");
-				$$$$(btn, "clicked", $(void, (Tree * t) {
+				void on_click(Tree * t)
+				{
 					$_(item, tree::selected_item);
-					item := genlist_item;
 					$_(parent, item::parent);
 					parent := genlist_item;
 
 					tree_free(t);
 					item: item_del;
-					//elm_object_item_del(item);
 
 					tree : realized_items_update;
 					props: content(NULL);
@@ -203,61 +204,71 @@ EAPI_MAIN int elm_main(int argc, char * argv[])
 					Tree * pa = parent::item_data;
 					if (!pack_length(pa->boys))
 						parent: expanded(false);
-				}), t);
+				}
+				btn :- clicked(ANY on_click, t);
 				return btn;
 			}
-		});
->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		}
 
-	// init genlist for expand
-	$$$$(tree, "expand,request",
-		$(void, (void * $1, void * $2, Elm_Object_Item * item) {
-			Tree * t = elm_object_item_data_get(item);
+		ic->func.text_get    = ANY text_get;
+		ic->func.content_get = ANY content_get;
+	}
+
+	{
+		// bind "expand" and "contract" related events
+		void on_expand_request(SKIP, SKIP, Elm_Object_Item * item)
+		{
+			Tree * t = item::item_data;
 			if (pack_length(t->boys))
-				elm_genlist_item_expanded_set(item, EINA_TRUE);
+				item: expanded(true);
 			else popup_message("请生子！");
-		}), NULL);
-	$$$$(tree, "expanded",
-		$(void, (void * $1, void * $2, Elm_Object_Item * item) {
-			Tree * t = elm_object_item_data_get(item);
-			pack_walk(t->boys, Tree, boy, {
-				elm_genlist_item_append(tree, ic, boy, item,
-						ELM_GENLIST_ITEM_TREE, (void *)&edit, boy);
-			});
-		}), NULL);
+		}
 
-	// init genlist for contract
-	$$$$(tree, "contract,request",
-		$(void, (void * $1, void * $2, Elm_Object_Item * item) {
-			elm_genlist_item_expanded_set(item, EINA_FALSE);
-		}), NULL);
-	$$$$(tree, "contracted",
-		$(void, (void * $1, void * $2, Elm_Object_Item * item) {
-			elm_genlist_item_subitems_clear(item);
-		}), NULL);
+		void on_expanded(SKIP, SKIP, Elm_Object_Item * item)
+		{
+			Tree * t = item::item_data;
+			pack_walk(t->boys, Tree, boy, {
+				tree: item_append(ic, boy, item, ELM_GENLIST_ITEM_TREE, (void *)&edit, boy);
+			});
+		}
+
+		void on_contract_request(SKIP, SKIP, Elm_Object_Item * item)
+		{
+			item: expanded(false);
+		}
+
+		void on_contracted(SKIP, SKIP, Elm_Object_Item * item)
+		{
+			item: subitems_clear;
+		}
+
+		tree :- expand,request  (ANY on_expand_request  , NULL);
+		tree :- expanded        (ANY on_expanded        , NULL);
+		tree :- contract,request(ANY on_contract_request, NULL);
+		tree :- contracted      (ANY on_contracted      , NULL);
+	}
 
 	//------------------- properties: in pane's bottom
-	// frame
-	$_(props_frame, elm_frame_add(win));
-	elm_object_text_set(props_frame, "属性");
-	evas_object_size_hint_weight_set(props_frame,
-			EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-	evas_object_size_hint_align_set(props_frame,
-			EVAS_HINT_FILL, EVAS_HINT_FILL);
-	elm_object_part_content_set(panes, "right", props_frame);
-	evas_object_show(props_frame);
+	{
+		// frame
+		frame :+ frame(win);
+		frame :  text("属性");
+		frame :  hint_weight(::HINT_EXPAND, ::HINT_EXPAND);
+		frame :  hint_align (::HINT_FILL  , ::HINT_FILL  );
+		panes :  part_content_set("right", frame);
+		frame :  show;
 
-	// scroller
-	props = elm_scroller_add(win);
-	evas_object_size_hint_weight_set(props,
-			EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-	evas_object_size_hint_fill_set(props,
-			EVAS_HINT_FILL, EVAS_HINT_FILL);
-	elm_object_content_set(props_frame, props);
-	evas_object_show(props);
+		// scroller
+		{ ___ :+ scroller(win); props = ___; }
+		props :  hint_weight(::HINT_EXPAND, ::HINT_EXPAND);
+		props :  hint_align (::HINT_FILL  , ::HINT_FILL  );
+		frame :  content(props);
+		props :  show;
+	}
 
 	//------------------- done!
-	evas_object_show(win);
+	win: show;
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 	if (filename) document_open(filename);
 	else document_new(tree_new(NULL));
@@ -271,87 +282,99 @@ EAPI_MAIN int elm_main(int argc, char * argv[])
 
 static Evas_Object * limit_min_size(Evas_Object * o, int w, int h)
 {
-	$_(table, elm_table_add(win));
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+	table :+ table(win);
 	$_(rect, evas_object_rectangle_add(evas_object_evas_get(o)));
-	evas_object_size_hint_min_set(rect, w, h);
-	elm_table_pack(table, rect, 0, 0, 1, 1);
-	elm_table_pack(table, o, 0, 0, 1, 1);
+	rect := object;
+	rect :  hint_min(w, h);
+	table:  pack(rect, 0, 0, 1, 1);
+	table:  pack(o   , 0, 0, 1, 1);
 	return table;
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 }
 
 
 static void popup_message(const char * message)
 {
-	$_(popup, elm_popup_add(win));
-	elm_popup_orient_set(popup, ELM_POPUP_ORIENT_BOTTOM);
-	evas_object_size_hint_weight_set(popup,
-			EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-	elm_object_part_text_set(popup, "title,text", message);
-	evas_object_show(popup);
-
-	$$$$(popup, "block,clicked", $(void, (void * $1, Evas_Object * o) {
-		evas_object_del(o);
-	}), NULL);
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+	popup :+ popup(win);
+	popup :  orient(::ORIENT_BOTTOM);
+	popup :  hint_weight(::HINT_EXPAND, ::HINT_EXPAND);
+	popup :  part_text("title,text", message);
+	void on_block_clicked(void * data, popup :* popup)
+	{
+		popup: del;
+	}
+	popup :- block,clicked(ANY on_block_clicked, NULL);
+	popup :  show;
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 }
 
 
 static void popup_file_selector(const char * title, bool is_save,
 								void done(const char * filename))
 {
-	$_(popup, elm_popup_add(win));
-	elm_popup_orient_set(popup, ELM_POPUP_ORIENT_TOP);
-	evas_object_size_hint_weight_set(popup,
-			EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-	elm_object_part_text_set(popup, "title,text", title);
-	$$$$(popup, "block,clicked", $(void, (void * $1, Evas_Object * o) {
-		evas_object_del(o);
-	}), NULL);
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+	popup :+ popup(win);
+	popup :  orient(::ORIENT_TOP);
+	popup :  hint_weight(::HINT_EXPAND, ::HINT_EXPAND);
+	popup :  part_text("title,text", title);
+	void on_block_clicked(void * data, popup :* popup)
+	{
+		popup: del;
+	}
+	popup :- block,clicked(ANY on_block_clicked, NULL);
 
-	$_(fs, elm_fileselector_add(popup));
-	elm_fileselector_is_save_set(fs, is_save);
-	elm_fileselector_expandable_set(fs, false);
-	elm_fileselector_buttons_ok_cancel_set(fs, false);
-	elm_fileselector_path_set(fs, getenv("PWD"));
-	evas_object_size_hint_align_set(fs, EVAS_HINT_FILL, EVAS_HINT_FILL);
-	evas_object_show(fs);
-	elm_object_content_set(popup, limit_min_size(fs, 400, 400));
+	fs :+ fileselector(popup);
+	fs :  is_save(is_save);
+	fs :  expandable(false);
+	fs :  buttons_ok_cancel(false);
+	fs :  path(getenv("PWD"));
+	fs :  hint_align(::HINT_FILL, ::HINT_FILL);
+	fs :  show;
+	popup:content(limit_min_size(fs, 400, 400));
 
-	$_(btn, elm_button_add(popup));
-	elm_object_text_set(btn, "OK");
-	elm_object_part_content_set(popup, "button1", btn);
+	btn :+ button(popup);
+	btn :  text("ok");
+	popup: part_content("button1", btn);
+	popup: data("cb.done", done);
+	popup: data("cb.fs"  , fs  );
+	void on_btn_clicked(popup :* popup)
+	{
+		void (*done_cb)(const char * fn) = popup::data("cb.done");
+		fileselector :* f = popup::data("cb.fs");
+		done_cb(f::selected);
+		popup: del;
+	}
+	btn :- clicked(ANY on_btn_clicked, popup);
 
-	// set data and bind event
-	evas_object_data_set(popup, "cb:done", done);
-	evas_object_data_set(popup, "cb:fs", fs);
-	$$$$(btn, "clicked", $(void, (Evas_Object * o) {
-		void (*done_cb)(const char * fn) =
-				evas_object_data_get(o, "cb:done");
-		Evas_Object * f = evas_object_data_get(o, "cb:fs");
-		done_cb(elm_fileselector_selected_get(f));
-		evas_object_del(o);
-	}), popup);
-
-	evas_object_show(popup);
+	popup: show;
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 }
 
 
 static void toolbar_no_selected()
 {
-	$_(item, elm_toolbar_selected_item_get(toolbar));
-	if (item) elm_toolbar_item_selected_set(item, false);
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+	$_(tbitem, toolbar::selected_item);
+	tbitem := toolbar_item;
+	if (tbitem)
+		tbitem: selected(false);
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 }
 
 
 static void document_new(Tree * t)
 {
-	elm_genlist_clear(tree);
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+	tree: clear;
 	if (root) tree_free(root);
 
 	root = t;
 
-	elm_genlist_item_append(tree, ic, root, NULL,
-			ELM_GENLIST_ITEM_TREE, (void *)&edit, root);
-	elm_object_content_set(props, NULL);
+	tree: item_append(ic, root, NULL, ELM_GENLIST_ITEM_TREE, (void *)&edit, root);
+	props:content(NULL);
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 }
 
 
@@ -400,74 +423,159 @@ static void document_save(const char * fn)
 
 static void edit(Tree * t)
 {
-	$_(table, elm_table_add(win));
-	evas_object_size_hint_weight_set(table,
-			EVAS_HINT_EXPAND, 0);
-	evas_object_size_hint_fill_set(table,
-			EVAS_HINT_FILL, EVAS_HINT_FILL);
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+	table :+ table(win);
+	table :  hint_weight(::HINT_EXPAND, 0);
+	table :  hint_align(::HINT_FILL, ::HINT_FILL);
 
-#define EDIT_INIT($label, $x, $y) ({ \
-	$_(label, elm_label_add(win)); \
-	elm_object_scale_set(label, 1.2); \
-	evas_object_size_hint_padding_set(label, 5, 0, 0, 0); \
-	elm_object_text_set(label, "<font color=#48c>" $label "</>"); \
-	elm_table_pack(table, label, ($x)<<1, ($y), 1, 1); \
-	evas_object_show(label); \
+	inline void edit_init(const char * name, size_t x, size_t y)
+	{
+		static char buf[128];
+		snprintf(buf, 128, "<font color=#48c>%s</>", name);
+
+		label :+ label(win);
+		label :  scale(1.2);
+		label :  hint_padding(5, 0, 0, 0);
+		label :  text(strdup(buf));	// FIXME: really need strdup?
+		table :  pack(label, x<<1, y, 1, 1);
+		label :  show;
+	}
+
+	inline void edit_done(object :* ob, size_t x, size_t y)
+	{
+		ob := object;
+		ob :  hint_weight(::HINT_EXPAND, ::HINT_EXPAND);
+		ob :  hint_align (::HINT_FILL  , ::HINT_FILL  );
+		ob :  hint_padding(5, 5, 5, 0);
+		table:pack(ob, x<<1 | 1, y, 1, 1);
+		ob :  show;
+	}
+
+	inline void edit_text(const char * name,
+			size_t x, size_t y, const char ** var)
+	{
+		edit_init(name, x, y); 
+
+		ob :+ entry(win);
+		ob :  single_line(true);
+		ob :  text(*var);
+
+		void on_changed(const char ** var, entry :* ob)
+		{
+			if (*var) free(ANY *var);
+			*var = strdup(ob::text);
+			tree: realized_items_update;
+		}
+		ob :- changed(ANY on_changed, var);
+
+		edit_done(ANY ob, x, y);
+	}
+
+	inline void edit_uint(const char * name,
+			size_t x, size_t y, size_t * var)
+	{
+		edit_init(name, x, y); 
+
+		ob :+ slider(win);
+		ob :  min_max(0, 6);
+		ob :  value(*var);
+
+		void on_changed(size_t * var, slider :* ob)
+		{
+			*var = round(ob::value);
+			tree: realized_items_update;
+		}
+		void on_drag_stop(SKIP, slider :* ob)
+		{
+			double value = round(ob::value);
+			ob: value(value);
+		}
+		ob :- changed         (ANY on_changed  , var);
+		ob :- slider,drag,stop(ANY on_drag_stop, var);
+
+		char * format(double num)
+		{
+			return (char *)lookup(round(num));
+		}
+		ob :      units_format_function(format, NULL);
+		ob :  indicator_format_function(format, NULL);
+		ob :  unit_format("");
+
+		edit_done(ANY ob, x, y);
+	}
+
+#define EDIT_INIT($name, $x, $y) ({ \
+	label :+ label(win); \
+	label :  scale(1.2); \
+	label :  hint_padding(5, 0, 0, 0); \
+	label :  text("<font color=#48c>" $name "</>"); \
+	table :  pack(label, ($x)<<1, ($y), 1, 1) \
+	label :  show; \
 })
 #define EDIT_DONE($x, $y) ({ \
-	evas_object_size_hint_weight_set(ob, \
-			EVAS_HINT_EXPAND, EVAS_HINT_EXPAND); \
-	evas_object_size_hint_fill_set(ob, \
-			EVAS_HINT_FILL, EVAS_HINT_FILL); \
-	evas_object_size_hint_padding_set(ob, 5, 5, 5, 0); \
-	elm_table_pack(table, ob, ($x)<<1 | 1, ($y), 1, 1); \
-	evas_object_show(ob); \
+	ob := object; \
+	ob :  hint_weight(::HINT_EXPAND, ::HINT_EXPAND); \
+	ob :  hint_align (::HINT_FILL  , ::HINT_FILL  ); \
+	ob :  hint_padding(5, 5, 5, 0); \
+	table:pack(ob, ($x)<<1 | 1, ($y), 1, 1); \
+	ob :  show; \
 })
 
-#define EDIT_TEXT($label, $x, $y, $var) ({ \
-	EDIT_INIT($label, $x, $y); \
-	$_(ob, elm_entry_add(win)); \
-	elm_entry_single_line_set(ob, EINA_TRUE); \
-	elm_object_text_set(ob, ($var)); \
+#define EDIT_TEXT($name, $x, $y, $var) ({ \
+	EDIT_INIT($name, $x, $y); \
+	ob :+ entry(win); \
+	ob :  single_line(true); \
+	ob :  text(($var)); \
 	EDIT_DONE($x, $y); \
  \
-	$$$$(ob, "changed", $(void, (const char ** s, Evas_Object * ob) { \
-		if (*s) free((void *)*s); \
-		*s = strdup(elm_object_text_get(ob)); \
-		elm_genlist_realized_items_update(tree); \
-	}), &($var)); \
+ 	void on_changed(const char ** s, entry :* ob) \
+	{ \
+		if (*s) free(ANY *s); \
+		*s = strdup(ob::text); \
+		tree: realized_items_update; \
+	} \
+	ob :- changed(ANY on_changed, &($var)); \
 })
-#define EDIT_UINT($label, $x, $y, $var) ({ \
-	EDIT_INIT($label, $x, $y); \
-	$_(ob, elm_slider_add(win)); \
-	elm_slider_min_max_set(ob, 0, 6); \
-	elm_slider_value_set(ob, ($var)); \
+#define EDIT_UINT($name, $x, $y, $var) ({ \
+	EDIT_INIT($name, $x, $y); \
+	ob :+ slider(win); \
+	ob :  min_max(0, 6); \
+	ob :  value(($var)); \
 	EDIT_DONE($x, $y); \
  \
-	$$$$(ob, "changed", $(void, (size_t * s, Evas_Object * ob) { \
-		*s = round(elm_slider_value_get(ob)); \
-		elm_genlist_realized_items_update(tree); \
-	}), &($var)); \
-	$$$$(ob, "slider,drag,stop", $(void, (void * $1, Evas_Object * ob) { \
-		elm_slider_value_set(ob, round(elm_slider_value_get(ob))); \
-	}), &($var)); \
+ 	void on_changed(size_t * s, slider :* ob) \
+	{ \
+		*s = round(ob::value); \
+		tree: realized_items_update; \
+	} \
+	void on_drag_stop(void * data, slider :* ob) \
+	{ \
+		double value = round(ob::value); \
+		ob: value(value); \
+	} \
+	ob :- changed         (ANY on_changed  , &($var)); \
+	ob :- slider,drag,stop(ANY on_drag_stop, &($var)); \
  \
 	char * format(double num) \
 	{ \
 		return (char *)lookup(round(num)); \
 	} \
-	elm_slider_indicator_format_function_set(ob, &format, NULL); \
-	elm_slider_units_format_function_set(ob, &format, NULL); \
-	elm_slider_unit_format_set(ob, ""); \
+	ob :      units_format_function(format, NULL); \
+	ob :  indicator_format_function(format, NULL); \
+	ob :  unit_format(""); \
 })
 
 	//-------------- EDIT HERE ----------------
-	EDIT_TEXT("姓名", 0, 0, t->name);
-	EDIT_TEXT("妻子", 1, 0, t->wife);
-	EDIT_UINT("女数", 2, 0, t->ngirl);
+	//EDIT_TEXT("姓名", 0, 0, t->name);
+	//EDIT_TEXT("妻子", 1, 0, t->wife);
+	//EDIT_UINT("女数", 2, 0, t->ngirl);
+	edit_text("姓名", 0, 0, &t->name);
+	edit_text("妻子", 1, 0, &t->wife);
+	edit_uint("女数", 2, 0, &t->ngirl);
 	//-------------- EDIT DONE ----------------
 
-	elm_object_content_set(props, table);
-	evas_object_show(table);
+	props: content(table);
+	table: show;
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 }
 
