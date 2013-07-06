@@ -35,12 +35,14 @@ main()
 	gen -e "\tenv LANG=C git commit -a || true"
 	gen -e "\t./configure"
 	gen
-	gen "init: build build/objects"
-	gen -e "\t./lpp-elm-ui-db-gen"
+	gen "init: build build/objects lpp-elm-ui.func.db"
 	gen "build:"
 	gen -e "\tmkdir build"
 	gen "build/objects:"
 	gen -e "\tmkdir build/objects"
+	gen "lpp-elm-ui.func.db:"
+	gen -e "\t./lpp-elm-ui-db-gen"
+	gen
 
 	for f in src/*.c; do
 		echo -e "\e[0;32mprocessing \e[1;35m$f\e[m"
