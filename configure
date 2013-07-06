@@ -8,7 +8,8 @@ main()
 	local LDFLAGS="-Llibcrude -lcrude -lm"
 	echo "# vim: ft=make noet ts=4 sw=4 sts=0" > makefile
 	gen
-	gen "CC = gcc"
+	gen "CC = ./lpp elm-ui"
+	gen "LD = gcc"
 	gen "CCFLAGS = -march=native -Ofast -Wall -Wno-main $CCFLAGS"
 	gen "LDFLAGS = $LDFLAGS"
 	gen
@@ -19,6 +20,7 @@ main()
 	gen
 	gen "all: init build/tramee"
 	gen "clean:"
+	gen -e "\trm -f lpp-elm-ui.*.db"
 	gen -e "\trm -rf build"
 	gen "cleanall: clean"
 	gen -e "\trm -f makefile"
@@ -34,6 +36,7 @@ main()
 	gen -e "\t./configure"
 	gen
 	gen "init: build build/objects"
+	gen -e "\t./lpp-elm-ui-db-gen"
 	gen "build:"
 	gen -e "\tmkdir build"
 	gen "build/objects:"
@@ -47,12 +50,12 @@ main()
 		OBJS="$OBJS $target";
 		gen -n "build/objects/"
 		cat .dep >> makefile
-		gen -e "\t\$(CC) -c -o \$@ \$< \$(CCFLAGS)"
+		gen -e "\t\$(CC) \$< -c -o \$@ \$(CCFLAGS)"
 	done
 	echo -ne "\e[m"
 	rm -f .dep
 	gen "build/tramee:$OBJS"
-	gen -e "\t\$(CC) -o \$@ \$^ \$(LDFLAGS)"
+	gen -e "\t\$(LD) -o \$@ \$^ \$(LDFLAGS)"
 	gen
 }
 
