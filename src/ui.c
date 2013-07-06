@@ -12,14 +12,7 @@ const char * filename;
 
 
 
-// simpler callback add
-#define $$$$($object, $event, $callback, $arg) \
-	evas_object_smart_callback_add($object, $event, \
-			(void *)($callback), (void *)($arg))
-#define $$$($object, $event, $callback, $arg) \
-	evas_object_event_callback_add($object, $event, \
-			(void *)($callback), (void *)($arg))
-#define ANY (void *)
+#define ANY		(void *)
 
 
 
@@ -29,8 +22,9 @@ static win      :* win;
 static toolbar  :* toolbar;
 static genlist  :* tree;
 static scroller :* props;
->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 static Elm_Genlist_Item_Class * ic;
+
+
 
 
 static const char * number_lookup[] = {
@@ -71,7 +65,6 @@ void ui_run()
 
 EAPI_MAIN int elm_main(int argc, char * argv[])
 {
-<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 	//------------------- main window
 	{ __ :+ win(NULL, "tramee", ::BASIC); win = __; }
 	win :  title("tramee");
@@ -94,7 +87,6 @@ EAPI_MAIN int elm_main(int argc, char * argv[])
 	toolbar :  hint_align(::HINT_FILL, 0);
 	box     :  pack_end(toolbar);
 	toolbar :  show;
->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 	// toolbar items
 	void on_toolbar_new()
@@ -116,7 +108,6 @@ EAPI_MAIN int elm_main(int argc, char * argv[])
 		else popup_file_selector("保存到哪？", true, &document_save);
 	}
 
-<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 	toolbar: item_append(NULL, "新建", ANY on_toolbar_new , NULL);
 	toolbar: item_append(NULL, "打开", ANY on_toolbar_open, NULL);
 	toolbar: item_append(NULL, "保存", ANY on_toolbar_save, NULL);
@@ -268,7 +259,6 @@ EAPI_MAIN int elm_main(int argc, char * argv[])
 
 	//------------------- done!
 	win: show;
->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 	if (filename) document_open(filename);
 	else document_new(tree_new(NULL));
@@ -282,7 +272,6 @@ EAPI_MAIN int elm_main(int argc, char * argv[])
 
 static Evas_Object * limit_min_size(Evas_Object * o, int w, int h)
 {
-<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 	table :+ table(win);
 	$_(rect, evas_object_rectangle_add(evas_object_evas_get(o)));
 	rect := object;
@@ -290,13 +279,11 @@ static Evas_Object * limit_min_size(Evas_Object * o, int w, int h)
 	table:  pack(rect, 0, 0, 1, 1);
 	table:  pack(o   , 0, 0, 1, 1);
 	return table;
->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 }
 
 
 static void popup_message(const char * message)
 {
-<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 	popup :+ popup(win);
 	popup :  orient(::ORIENT_BOTTOM);
 	popup :  hint_weight(::HINT_EXPAND, ::HINT_EXPAND);
@@ -307,14 +294,12 @@ static void popup_message(const char * message)
 	}
 	popup :- block,clicked(ANY on_block_clicked, NULL);
 	popup :  show;
->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 }
 
 
 static void popup_file_selector(const char * title, bool is_save,
 								void done(const char * filename))
 {
-<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 	popup :+ popup(win);
 	popup :  orient(::ORIENT_TOP);
 	popup :  hint_weight(::HINT_EXPAND, ::HINT_EXPAND);
@@ -349,24 +334,20 @@ static void popup_file_selector(const char * title, bool is_save,
 	btn :- clicked(ANY on_btn_clicked, popup);
 
 	popup: show;
->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 }
 
 
 static void toolbar_no_selected()
 {
-<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 	$_(tbitem, toolbar::selected_item);
 	tbitem := toolbar_item;
 	if (tbitem)
 		tbitem: selected(false);
->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 }
 
 
 static void document_new(Tree * t)
 {
-<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 	tree: clear;
 	if (root) tree_free(root);
 
@@ -374,7 +355,6 @@ static void document_new(Tree * t)
 
 	tree: item_append(ic, root, NULL, ELM_GENLIST_ITEM_TREE, (void *)&edit, root);
 	props:content(NULL);
->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 }
 
 
@@ -423,7 +403,6 @@ static void document_save(const char * fn)
 
 static void edit(Tree * t)
 {
-<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 	table :+ table(win);
 	table :  hint_weight(::HINT_EXPAND, 0);
 	table :  hint_align(::HINT_FILL, ::HINT_FILL);
@@ -436,7 +415,7 @@ static void edit(Tree * t)
 		label :+ label(win);
 		label :  scale(1.2);
 		label :  hint_padding(5, 0, 0, 0);
-		label :  text(strdup(buf));	// FIXME: really need strdup?
+		label :  text(buf);
 		table :  pack(label, x<<1, y, 1, 1);
 		label :  show;
 	}
@@ -504,78 +483,12 @@ static void edit(Tree * t)
 		edit_done(ANY ob, x, y);
 	}
 
-#define EDIT_INIT($name, $x, $y) ({ \
-	label :+ label(win); \
-	label :  scale(1.2); \
-	label :  hint_padding(5, 0, 0, 0); \
-	label :  text("<font color=#48c>" $name "</>"); \
-	table :  pack(label, ($x)<<1, ($y), 1, 1) \
-	label :  show; \
-})
-#define EDIT_DONE($x, $y) ({ \
-	ob := object; \
-	ob :  hint_weight(::HINT_EXPAND, ::HINT_EXPAND); \
-	ob :  hint_align (::HINT_FILL  , ::HINT_FILL  ); \
-	ob :  hint_padding(5, 5, 5, 0); \
-	table:pack(ob, ($x)<<1 | 1, ($y), 1, 1); \
-	ob :  show; \
-})
-
-#define EDIT_TEXT($name, $x, $y, $var) ({ \
-	EDIT_INIT($name, $x, $y); \
-	ob :+ entry(win); \
-	ob :  single_line(true); \
-	ob :  text(($var)); \
-	EDIT_DONE($x, $y); \
- \
- 	void on_changed(const char ** s, entry :* ob) \
-	{ \
-		if (*s) free(ANY *s); \
-		*s = strdup(ob::text); \
-		tree: realized_items_update; \
-	} \
-	ob :- changed(ANY on_changed, &($var)); \
-})
-#define EDIT_UINT($name, $x, $y, $var) ({ \
-	EDIT_INIT($name, $x, $y); \
-	ob :+ slider(win); \
-	ob :  min_max(0, 6); \
-	ob :  value(($var)); \
-	EDIT_DONE($x, $y); \
- \
- 	void on_changed(size_t * s, slider :* ob) \
-	{ \
-		*s = round(ob::value); \
-		tree: realized_items_update; \
-	} \
-	void on_drag_stop(void * data, slider :* ob) \
-	{ \
-		double value = round(ob::value); \
-		ob: value(value); \
-	} \
-	ob :- changed         (ANY on_changed  , &($var)); \
-	ob :- slider,drag,stop(ANY on_drag_stop, &($var)); \
- \
-	char * format(double num) \
-	{ \
-		return (char *)lookup(round(num)); \
-	} \
-	ob :      units_format_function(format, NULL); \
-	ob :  indicator_format_function(format, NULL); \
-	ob :  unit_format(""); \
-})
-
-	//-------------- EDIT HERE ----------------
-	//EDIT_TEXT("姓名", 0, 0, t->name);
-	//EDIT_TEXT("妻子", 1, 0, t->wife);
-	//EDIT_UINT("女数", 2, 0, t->ngirl);
 	edit_text("姓名", 0, 0, &t->name);
 	edit_text("妻子", 1, 0, &t->wife);
 	edit_uint("女数", 2, 0, &t->ngirl);
-	//-------------- EDIT DONE ----------------
 
 	props: content(table);
 	table: show;
->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 }
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
