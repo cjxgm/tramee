@@ -420,18 +420,19 @@ static void edit(Tree * t)
 		label :  show;
 	}
 
-	inline void edit_done(object :* ob, size_t x, size_t y)
+	inline void edit_done(object :* ob,
+			size_t x, size_t y, size_t w, size_t h)
 	{
 		ob := object;
 		ob :  hint_weight(::HINT_EXPAND, ::HINT_EXPAND);
 		ob :  hint_align (::HINT_FILL  , ::HINT_FILL  );
 		ob :  hint_padding(5, 5, 5, 0);
-		table:pack(ob, x<<1 | 1, y, 1, 1);
+		table:pack(ob, x<<1 | 1, y, (w<<1) - 1, h);
 		ob :  show;
 	}
 
 	inline void edit_text(const char * name,
-			size_t x, size_t y, const char ** var)
+			size_t x, size_t y, size_t w, size_t h, const char ** var)
 	{
 		edit_init(name, x, y); 
 
@@ -447,11 +448,11 @@ static void edit(Tree * t)
 		}
 		ob :- changed(ANY on_changed, var);
 
-		edit_done(ANY ob, x, y);
+		edit_done(ANY ob, x, y, w, h);
 	}
 
 	inline void edit_uint(const char * name,
-			size_t x, size_t y, size_t * var)
+			size_t x, size_t y, size_t w, size_t h, size_t * var)
 	{
 		edit_init(name, x, y); 
 
@@ -480,12 +481,12 @@ static void edit(Tree * t)
 		ob :  indicator_format_function(format, NULL);
 		ob :  unit_format("");
 
-		edit_done(ANY ob, x, y);
+		edit_done(ANY ob, x, y, w, h);
 	}
 
-	edit_text("姓名", 0, 0, &t->name);
-	edit_text("妻子", 1, 0, &t->wife);
-	edit_uint("女数", 2, 0, &t->ngirl);
+	edit_text("姓名", 0, 0, 1, 1, &t->name);
+	edit_text("妻子", 1, 0, 1, 1, &t->wife);
+	edit_uint("女数", 2, 0, 1, 1, &t->ngirl);
 
 	props: content(table);
 	table: show;
