@@ -15,8 +15,8 @@ for (@ds) {
 	for (<$_/*.h>) {
 		open my $F, '<', $_ or die $!;
 		while (<$F>) {
-			/EAPI.*((elm|evas)_[^()\s]+)\s*\(.*/ and unshift @funcs, $1;
-			/#define\s+((elm|evas)_[a-z0-9_]+)/  and unshift @funcs, $1;
+			/EAPI.*?((elm|evas)_[^()\s]+)\s*\(.*/ and unshift @funcs, $1;
+			/#define\s+?((elm|evas)_[a-z0-9_]+)/  and unshift @funcs, $1;
 			/_H$/ and next;
 			/(ELM|EVAS)_[A-Z0-9_]+/ and unshift @consts, $&;
 		}
