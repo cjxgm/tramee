@@ -1,7 +1,6 @@
 // vim: noet ts=4 sw=4 sts=0
 // Tramee Tree
-#ifndef __TRAMEE$TREE__
-#define __TRAMEE$TREE__
+#pragma once
 
 #include <unistd.h>
 #include "pack.h"
@@ -58,6 +57,4 @@ void tree_set_wife(Tree * tree, const char * wife);
 
 Tree * tree_load(const char * file);
 bool   tree_save(Tree * tree, const char * file);
-
-#endif
 
