@@ -1,4 +1,5 @@
-# vim: ft=perl
+# vim: noet ts=4 sw=4 sts=0 ft=perl
+
 @ud::targets = qw[ all clean rebuild test commit ];
 
 $ud::cc = "gcc";
