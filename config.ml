@@ -10,6 +10,34 @@ $ud::ldflags = "-Llibcrude -lcrude -lm";
 $ud::dest = "tramee";
 $ud::test_arg = "./example/test.tramee";
 
+
+
+
+sub ud::ccflags
+{
+	my $flags = '';
+	for (@_) {
+		chomp($flags .= `pkg-config --cflags $_`);
+		$flags =~ s/\s+$//g;
+		$flags .= ' ';
+	}
+	$flags;
+}
+
+sub ud::ldflags
+{
+	my $flags = '';
+	for (@_) {
+		chomp($flags .= `pkg-config --libs $_`);
+		$flags =~ s/\s+$//g;
+		$flags .= ' ';
+	}
+	$flags;
+}
+
+
+
+
 (
 	all => {
 		require => [qw[ gen_db compile build ]],
@@ -27,7 +55,8 @@ $ud::test_arg = "./example/test.tramee";
 	},
 
 	test => {
-		pre => sub {
+		require => [qw[ all ]],
+		post => sub {
 			system "./build/$ud::dest $ud::test_arg";
 		},
 	},
