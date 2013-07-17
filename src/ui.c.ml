@@ -6,8 +6,8 @@ my @olds;
 	enter => sub {
 		@olds = ($ud::cc, $ud::ccflags);
 		$ud::cc = "./lpp elm-ui";
-		$ud::ccflags .= " " . `pkg-config --cflags elementary`;
-		$ud::ldflags .= " " . `pkg-config --libs   elementary`;
+		$ud::ccflags .= " " . &ml::ccflags('elementary');
+		$ud::ldflags .= " " . &ml::ldflags('elementary');
 	},
 	leave => sub {
 		($ud::cc, $ud::ccflags) = @olds;

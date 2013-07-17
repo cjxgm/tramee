@@ -6,6 +6,8 @@ $ud::ld = "gcc";
 $ud::ccflags = "-std=gnu11 -march=native -Ofast -Wall "
 			 . "-Ilibcrude -Wno-main";
 $ud::ldflags = "-Llibcrude -lcrude -lm";
+$ud::dest = "tramee";
+$ud::test_arg = "./example/test.tramee";
 
 (
 	all => {
@@ -25,7 +27,7 @@ $ud::ldflags = "-Llibcrude -lcrude -lm";
 
 	test => {
 		pre => sub {
-			system "./build/tramee ./example/test.tramee";
+			system "./build/$ud::dest $ud::test_arg";
 		},
 	},
 
@@ -86,7 +88,7 @@ $ud::ldflags = "-Llibcrude -lcrude -lm";
 	},
 
 	build => {
-		source => [qw[ build ]],
+		source => [qw[ build/src ]],
 		pre => sub {
 			@ud::objs = ();
 			$ud::dirty = 0;
@@ -95,12 +97,12 @@ $ud::ldflags = "-Llibcrude -lcrude -lm";
 			push @ud::objs, "@_";
 		},
 		dirty => sub {
-			$ud::dirty |= &ml::newer("@_", "build/tramee");
+			$ud::dirty |= &ml::newer("@_", "build/$ud::dest");
 			1;
 		},
 		post => sub {
 			if ($ud::dirty) {
-				system "env LANG=C $ud::ld -o build/tramee @ud::objs $ud::ldflags";
+				system "env LANG=C $ud::ld -o build/$ud::dest @ud::objs $ud::ldflags";
 			}
 			else { print "\e[0;30;42m skip \e[0m\n" }
 		},
