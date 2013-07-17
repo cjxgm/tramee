@@ -26,7 +26,6 @@ Tree * tree_new(Tree * parent)
 	return tree;
 }
 
-
 void tree_free(Tree * tree)
 {
 	Tree * pa = tree->parent;
