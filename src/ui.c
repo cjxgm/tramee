@@ -12,7 +12,6 @@ const char * filename;
 
 
 
-
 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 static win      :* win;
 static toolbar  :* toolbar;
