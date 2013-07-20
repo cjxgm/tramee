@@ -50,7 +50,7 @@ void tree_free(Tree * tree)
 
 /***************************************************
  *
- * properties
+ * util
  *
  */
 
@@ -67,6 +67,17 @@ void tree_set_note(Tree * tree, const char * note)
 	if (tree->note) free(ANY tree->note);
 	if (note) tree->note = strdup(note);
 	else tree->note = NULL;
+}
+
+
+void tree_count_direct_childs(Tree * tree, int * nboy, int * ngirl)
+{
+	int nchild[2] = { 0, 0 };
+	pack_walk(tree->childs, Tree, t, {
+		nchild[t->gender]++;
+	});
+	*nboy  = nchild[0];
+	*ngirl = nchild[1];
 }
 
 

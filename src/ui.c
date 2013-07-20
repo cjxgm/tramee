@@ -135,10 +135,11 @@ EAPI_MAIN int elm_main(int argc, char * argv[])
 		const char * text_get(Tree * t)
 		{
 			static char str[64];
-			snprintf(str, sizeof(str), "%s %s：%s子女",
+			int nboy, ngirl;
+			tree_count_direct_childs(t, &nboy, &ngirl);
+			snprintf(str, sizeof(str), "%s %s：%s子%s女",
 					(t->gender ? "女" : "男"),
-					t->name,
-					lookup(pack_length(t->childs)));
+					t->name, lookup(nboy), lookup(ngirl));
 			return strdup(str);
 		}
 
