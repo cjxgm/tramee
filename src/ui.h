@@ -4,8 +4,5 @@
 
 #include "tree.h"
 
-
-extern Tree * root;
-extern const char * filename;
 void ui_run();
 

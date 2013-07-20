@@ -19,12 +19,12 @@ struct Tree
 {
 	// tree structure
 	Tree * parent;
-	Pack * boys;
+	Pack * childs;
 
 	// information
+	int gender;		// 0 for male, 1 for female
 	const char * name;
-	const char * wife;
-	size_t ngirl;
+	const char * note;
 };
 
 
@@ -46,7 +46,7 @@ void   tree_free(Tree * tree);
 
 // the folowing 2 functions will do strdup on "name"
 void tree_set_name(Tree * tree, const char * name);
-void tree_set_wife(Tree * tree, const char * wife);
+void tree_set_note(Tree * tree, const char * note);
 
 
 /***************************************************

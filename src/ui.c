@@ -6,8 +6,8 @@
 
 
 
-Tree * root;
-const char * filename;
+static Tree * root;
+static const char * filename;
 
 
 
@@ -23,7 +23,7 @@ static Elm_Genlist_Item_Class * ic;
 
 
 static const char * number_lookup[] = {
-	"无", "一", "二", "三", "四", "五", "多"
+	"无", "一", "二", "三", "四", "五", "六", "七", "八", "九", "十", "多"
 };
 static inline const char * lookup(int num)
 {
@@ -108,23 +108,14 @@ EAPI_MAIN int elm_main(int argc, char * argv[])
 	toolbar: item_append(NULL, "保存", ANY on_toolbar_save, NULL);
 	toolbar: item_append(NULL, "退出", ANY elm_exit       , NULL);
 
-	//------------------- panes: in main vbox
-	panes :+ panes(win);
-	panes :  horizontal(true);
-	panes :  hint_weight(::HINT_EXPAND, ::HINT_EXPAND);
-	panes :  hint_align (::HINT_FILL  , ::HINT_FILL  );
-	win   :  resize_object(panes);
-	box   :  pack_end(panes);
-	panes :  show;
-
-	//------------------- tree: in pane's top
+	//------------------- tree
 	{
 		// frame
 		frame :+ frame(win);
-		frame :  text("家谱树");
+		frame :  text("家谱");
 		frame :  hint_weight(::HINT_EXPAND, ::HINT_EXPAND);
 		frame :  hint_align (::HINT_FILL  , ::HINT_FILL  );
-		panes :  part_content_set("left", frame);
+		box   :  pack_end(frame);
 		frame :  show;
 
 		// genlist
@@ -144,8 +135,10 @@ EAPI_MAIN int elm_main(int argc, char * argv[])
 		const char * text_get(Tree * t)
 		{
 			static char str[64];
-			snprintf(str, 32, "%s：%s子%s女", t->name,
-					lookup(pack_length(t->boys)), lookup(t->ngirl));
+			snprintf(str, sizeof(str), "%s %s：%s子女",
+					(t->gender ? "女" : "男"),
+					t->name,
+					lookup(pack_length(t->childs)));
 			return strdup(str);
 		}
 
@@ -153,13 +146,13 @@ EAPI_MAIN int elm_main(int argc, char * argv[])
 		{
 			if (!strcmp(part, "elm.swallow.icon")) {
 				btn :+ button(win);
-				btn :  text("生子");
+				btn :  text("生");
 				void on_click(Tree * t)
 				{
-					$_(boy, tree_new(t));
+					$_(child, tree_new(t));
 					$_(item, tree::selected_item);
 					if (item::expanded)
-						tree: item_append(ic, boy, item, ELM_GENLIST_ITEM_TREE, (void *)&edit, boy);
+						tree: item_append(ic, child, item, ELM_GENLIST_ITEM_TREE, (void *)&edit, child);
 					item: expanded(true);
 					tree: realized_items_update;
 				}
@@ -188,7 +181,7 @@ EAPI_MAIN int elm_main(int argc, char * argv[])
 					}
 
 					Tree * pa = parent::item_data;
-					if (!pack_length(pa->boys))
+					if (!pack_length(pa->childs))
 						parent: expanded(false);
 				}
 				btn :- clicked(ANY on_click, t);
@@ -205,16 +198,16 @@ EAPI_MAIN int elm_main(int argc, char * argv[])
 		void on_expand_request(SKIP, SKIP, Elm_Object_Item * item)
 		{
 			Tree * t = item::item_data;
-			if (pack_length(t->boys))
+			if (pack_length(t->childs))
 				item: expanded(true);
-			else popup_message("请生子！");
+			else popup_message("请生！");
 		}
 
 		void on_expanded(SKIP, SKIP, Elm_Object_Item * item)
 		{
 			Tree * t = item::item_data;
-			pack_walk(t->boys, Tree, boy, {
-				tree: item_append(ic, boy, item, ELM_GENLIST_ITEM_TREE, (void *)&edit, boy);
+			pack_walk(t->childs, Tree, child, {
+				tree: item_append(ic, child, item, ELM_GENLIST_ITEM_TREE, (void *)&edit, child);
 			});
 		}
 
@@ -234,29 +227,35 @@ EAPI_MAIN int elm_main(int argc, char * argv[])
 		tree :- contracted      (ANY on_contracted      , NULL);
 	}
 
-	//------------------- properties: in pane's bottom
+	//------------------- properties
 	{
 		// frame
 		frame :+ frame(win);
-		frame :  text("属性");
-		frame :  hint_weight(::HINT_EXPAND, ::HINT_EXPAND);
-		frame :  hint_align (::HINT_FILL  , ::HINT_FILL  );
-		panes :  part_content_set("right", frame);
+		frame :  text("信息");
+		frame :  hint_weight(::HINT_EXPAND,   0        );
+		frame :  hint_align (::HINT_FILL  , ::HINT_FILL);
+		box   :  pack_end(frame);
 		frame :  show;
 
-		// scroller
+		// scroller, just add some 3d-inside-look
 		{ ___ :+ scroller(win); props = ___; }
 		props :  hint_weight(::HINT_EXPAND, ::HINT_EXPAND);
 		props :  hint_align (::HINT_FILL  , ::HINT_FILL  );
-		frame :  content(props);
 		props :  show;
+		props :  bounce(false, false);
+		table :* p =  limit_min_size(props, 100, 50);
+		p     :  hint_weight(::HINT_EXPAND, ::HINT_EXPAND);
+		p     :  hint_align (::HINT_FILL  , ::HINT_FILL  );
+		frame :  content(p);
+		p     :  show;
 	}
 
 	//------------------- done!
 	win: show;
 
-	if (filename) document_open(filename);
-	else document_new(tree_new(NULL));
+	document_new(tree_new(NULL));
+	extern const char * filename_to_open;	// in main.c
+	if (filename_to_open) document_open(filename_to_open);
 
 	elm_run();
 	elm_shutdown();
@@ -265,12 +264,14 @@ EAPI_MAIN int elm_main(int argc, char * argv[])
 }
 
 
-static Evas_Object * limit_min_size(Evas_Object * o, int w, int h)
+static Evas_Object * limit_min_size(object :* o, int w, int h)
 {
 	table :+ table(win);
 	$_(rect, evas_object_rectangle_add(evas_object_evas_get(o)));
 	rect := object;
 	rect :  hint_min(w, h);
+	rect :  hint_weight(::HINT_EXPAND, ::HINT_EXPAND);
+	rect :  hint_align (::HINT_FILL  , ::HINT_FILL  );
 	table:  pack(rect, 0, 0, 1, 1);
 	table:  pack(o   , 0, 0, 1, 1);
 	return table;
@@ -398,40 +399,26 @@ static void document_save(const char * fn)
 
 static void edit(Tree * t)
 {
+	static int pos = 0;
+
 	table :+ table(win);
-	table :  hint_weight(::HINT_EXPAND, 0);
-	table :  hint_align(::HINT_FILL, ::HINT_FILL);
+	table :  hint_weight(::HINT_EXPAND,   0        );
+	table :  hint_align (::HINT_FILL  , ::HINT_FILL);
 
-	inline void edit_init(const char * name, size_t x, size_t y)
-	{
-		static char buf[128];
-		snprintf(buf, 128, "<font color=#48c>%s</>", name);
-
-		label :+ label(win);
-		label :  scale(1.2);
-		label :  hint_padding(5, 0, 0, 0);
-		label :  text(buf);
-		table :  pack(label, x<<1, y, 1, 1);
-		label :  show;
-	}
-
-	inline void edit_done(object :* ob,
-			size_t x, size_t y, size_t w, size_t h)
+	inline void edit_done(object :* ob, double weight_x)
 	{
 		ob := object;
-		ob :  hint_weight(::HINT_EXPAND, ::HINT_EXPAND);
-		ob :  hint_align (::HINT_FILL  , ::HINT_FILL  );
+		ob :  hint_weight(  weight_x , ::HINT_EXPAND);
+		ob :  hint_align (::HINT_FILL, ::HINT_FILL  );
 		ob :  hint_padding(5, 5, 5, 0);
-		table:pack(ob, x<<1 | 1, y, (w<<1) - 1, h);
+		table:pack(ob, pos++, 0, 1, 1);
 		ob :  show;
 	}
 
-	inline void edit_text(const char * name,
-			size_t x, size_t y, size_t w, size_t h, const char ** var)
+	inline void edit_text(const char ** var, double weight_x)
 	{
-		edit_init(name, x, y); 
-
 		ob :+ entry(win);
+		ob :  scrollable(true);
 		ob :  single_line(true);
 		ob :  text(*var);
 
@@ -443,45 +430,33 @@ static void edit(Tree * t)
 		}
 		ob :- changed(ANY on_changed, var);
 
-		edit_done(ANY ob, x, y, w, h);
+		edit_done(ANY ob, weight_x);
 	}
 
-	inline void edit_uint(const char * name,
-			size_t x, size_t y, size_t w, size_t h, size_t * var)
+	inline void edit_bool(int * var, double weight_x,
+			const char * label_on, const char * label_off)
 	{
-		edit_init(name, x, y); 
+		ob :+ check(win);
+		ob :  style("toggle");
+		ob :  part_text("on" , label_on );
+		ob :  part_text("off", label_off);
+		ob :  state(*var);
 
-		ob :+ slider(win);
-		ob :  min_max(0, 6);
-		ob :  value(*var);
-
-		void on_changed(size_t * var, slider :* ob)
+		void on_changed(int * var, check :* ob)
 		{
-			*var = round(ob::value);
+			*var = ob::state;
 			tree: realized_items_update;
 		}
-		void on_drag_stop(SKIP, slider :* ob)
-		{
-			double value = round(ob::value);
-			ob: value(value);
-		}
-		ob :- changed         (ANY on_changed  , var);
-		ob :- slider,drag,stop(ANY on_drag_stop, var);
+		ob :- changed(ANY on_changed, var);
 
-		char * format(double num)
-		{
-			return (char *)lookup(round(num));
-		}
-		ob :      units_format_function(format, NULL);
-		ob :  indicator_format_function(format, NULL);
-		ob :  unit_format("");
-
-		edit_done(ANY ob, x, y, w, h);
+		edit_done(ANY ob, weight_x);
 	}
 
-	edit_text("姓名", 0, 0, 1, 1, &t->name);
-	edit_text("妻子", 1, 0, 1, 1, &t->wife);
-	edit_uint("女数", 2, 0, 1, 1, &t->ngirl);
+
+	edit_bool(&t->gender, 0  , "女", "男");
+	edit_text(&t->name  , 0.3);
+	edit_text(&t->note  , 1  );
+
 
 	props: content(table);
 	table: show;
