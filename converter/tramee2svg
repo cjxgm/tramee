@@ -13,6 +13,14 @@ my %conf = (
 		size => 12,
 		color => '#666',
 	},
+	girl_style => {
+		size => 10,
+		color => '#F44',
+	},
+	child_count_style => {
+		size => 10,
+		color => '#44F',
+	},
 	note_offset => 10,
 	line_color => '#F0F',
 	line_v_offset => 4,
@@ -33,6 +41,7 @@ my %conf = (
 #                   |/  |
 #                       +----
 # line_child_length |-> |   |
+#     line_v_offset |->
 #                       子  女
 #                         ^
 #                         |
@@ -69,14 +78,32 @@ sub gen
 {
 	my ($t) = @_;
 
+	# plot name
 	&text($t->{name}, 0, 0, "name");
 	my $y = &h();
+	&text("女", int(&text_size("name")*0.8), $y, "girl") if $t->{gender} eq "女";
+	my $child_count = &count_child(@{$t->{childs}});
+	&text($child_count, &text_size("name"), 0, "child_count") if $child_count;
+
+	# plot note(s)
 	&push(&w() + $conf{note_offset}, 0);
 	for (@{$t->{note}}) {
 		&text($_, &w(), 0, "note");
 	}
 	&pop();
-	&linev(&text_size("name")/2, $y+$conf{line_v_offset}, &h()-$y-$conf{line_v_offset});
+
+	# plot line for children
+	return unless @{$t->{childs}};
+	&linev(&text_size("name")/2, $y+$conf{line_v_offset}, &h()-$y+$conf{line_v_offset});
+	my $x = 0;
+	$y = &h();
+	for (@{$t->{childs}}) {
+		&linev(&text_size("name")/2, $y, $conf{line_child_length});
+		&push($x, $y + $conf{line_child_length} + $conf{line_v_offset});
+		&gen($_);
+		&pop();
+		$x = $conf{child_spacing} + &w();
+	}
 }
 
 sub text
@@ -114,6 +141,25 @@ sub text_size
 	my ($class) = @_;
 	$class = $conf{"${class}_style"};
 	$class->{size};
+}
+
+sub number_to_chinese
+{
+	my @cn_number = qw[ 无 一 二 三 四 五 六 七 八 九 十 ];
+	my ($n) = @_;
+	$n = $cn_number[$n];
+	$n = '多' unless $n;
+	$n;
+}
+
+sub count_child
+{
+	return undef unless @_;
+	my %n = ('男' => 0, '女' => 0);
+	$n{$_->{gender}}++ for @_;
+	$nboy  = &number_to_chinese($n{'男'});
+	$ngirl = &number_to_chinese($n{'女'});
+	"${nboy}子${ngirl}女";
 }
 
 # print qq[<svg width="1190pt" height="842pt" version="1.1" baseProfile="full" xmlns="http://www.w3.org/2000/svg">\n];
