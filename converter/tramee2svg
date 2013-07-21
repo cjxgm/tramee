@@ -1,0 +1,161 @@
+#!/usr/bin/perl -w
+use Tramee;
+
+
+# config
+my %conf = (
+	page_margin => 10,
+	name_style => {
+		size => 16,
+		color => '#000',
+	},
+	note_style => {
+		size => 12,
+		color => '#666',
+	},
+	note_offset => 10,
+	line_color => '#F0F',
+	line_v_offset => 4,
+	line_v_length => 20,
+	line_child_length => 20,
+	child_spacing => 32,
+);
+
+#                          note_offset
+#                        ,-------------.
+#                       无              葬谥其
+#                       名              于号它
+#                       氏                  事
+#     line_v_offset |->                     迹
+#                       |                   等
+#                       |                   等
+#     line_v_length |\  |
+#                   |/  |
+#                       +----
+# line_child_length |-> |   |
+#                       子  女
+#                         ^
+#                         |
+#                         child_spacing
+
+# NOTE:
+# A3		 842x1190 pt
+# A4		 595x842 pt
+# pt = point, used for text size
+# em, 1 em = 1 text width, used for text spacing etc.
+
+my $svg = '';
+sub add { $svg .= "@_\n" }
+
+{ # main
+	open my $f, "<", "@ARGV" or die $!;
+	my $t = &Tramee::load($f);
+	close $f;
+
+	&push($conf{page_margin}, $conf{page_margin});
+	&gen($t);
+	my $w = &w + 2*$conf{page_margin};
+	my $h = &h + 2*$conf{page_margin};
+	&pop();
+	$svg = qq[<svg width="${w}pt" height="${h}pt" version="1.1" baseProfile="full" xmlns="http://www.w3.org/2000/svg">\n$svg];
+	&add(qq[</svg>]);
+
+	print $svg;
+}
+
+
+
+sub gen
+{
+	my ($t) = @_;
+
+	&text($t->{name}, 0, 0, "name");
+	my $y = &h();
+	&push(&w() + $conf{note_offset}, 0);
+	for (@{$t->{note}}) {
+		&text($_, &w(), 0, "note");
+	}
+	&pop();
+	&linev(&text_size("name")/2, $y+$conf{line_v_offset}, &h()-$y-$conf{line_v_offset});
+}
+
+sub text
+{
+	my ($text, $ox, $oy, $class) = @_;
+	$class = $conf{"${class}_style"};
+
+	#                      ,----------------.- dirty hack: align to left.
+	my ($x, $y) = (&x($ox) + $class->{size}/2, &y($oy));
+	&w($ox + $class->{size});
+	&h($oy + $class->{size} * &u8len($text));
+
+	&add(qq[<text x="${x}pt" y="${y}pt" font-size="$class->{size}pt" font-family="文泉驿微米黑" fill="$class->{color}" writing-mode="tb">$text</text>]);
+}
+
+sub linev
+{
+	my ($ox, $oy, $len) = @_;
+	my ($x, $y) = (&x($ox), &y($oy));
+	my $y2 = $y + $len;
+	&w($ox);
+	&h($oy + $len);
+
+	&add(qq[<line x1="${x}pt" y1="${y}pt" x2="${x}pt" y2="${y2}pt" stroke="$conf{line_color}" stroke-width="2"/>]);
+}
+
+sub u8len
+{
+	# Chinese only
+	return length("@_") / 3;
+}
+
+sub text_size
+{
+	my ($class) = @_;
+	$class = $conf{"${class}_style"};
+	$class->{size};
+}
+
+# print qq[<svg width="1190pt" height="842pt" version="1.1" baseProfile="full" xmlns="http://www.w3.org/2000/svg">\n];
+# print qq[<text x="10pt" y="10pt" font-size="16pt" font-family="文泉驿微米黑" fill="#F0F" writing-mode="tb">$t->{name}</text>\n];
+# print qq[</svg>\n];
+
+
+# <rect width="100%" height="100%" fill="red" />
+# <circle cx="150" cy="100" r="80" fill="green" />
+# <text x="1em" y="125" font-size="60" text-anchor="left" fill="white">SVG</text>
+
+
+# stack system
+
+my @stack;
+
+sub push
+{
+	my ($ox, $oy) = @_;
+	my ($x, $y, $w, $h) = ($ox, $oy, 0, 0);
+	if (@stack) { $x += &x(); $y += &y() }
+	unshift @stack, [ $x, $y, $w, $h ];
+}
+
+sub pop
+{
+	my ($x, $y, $w, $h) = (&x(), &y(), &w(), &h());
+	shift @stack;
+	if (@stack) { &w($w + $x-&x); &h($h + $y-&y) }
+}
+
+sub top { $stack[0] }
+
+sub x { &top->[0] + (@_ ? $_[0] : 0) }
+sub y { &top->[1] + (@_ ? $_[0] : 0) }
+sub w { &top->[2] = $_[0] if @_ && $_[0]>&top->[2]; &top->[2] }
+sub h { &top->[3] = $_[0] if @_ && $_[0]>&top->[3]; &top->[3] }
+
+# TODO: remove this
+sub dump
+{
+	my ($x, $y, $w, $h) = (&x(), &y(), &w(), &h());
+	print ">> $x  $y  $w  $h\n";
+}
+
