@@ -4,7 +4,7 @@ package Tramee;
 
 
 
-sub load
+sub load($)
 {
 	my ($f) = @_;
 
