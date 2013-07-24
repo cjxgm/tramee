@@ -10,23 +10,23 @@ my %conf = (
 		color => '#000',
 	},
 	note_style => {
-		size => 12,
+		size => 10,
 		color => '#666',
 	},
 	girl_style => {
-		size => 10,
+		size => 8,
 		color => '#F44',
 	},
 	child_count_style => {
-		size => 10,
+		size => 8,
 		color => '#44F',
 	},
 	line_color => '#F0F',
-	note_offset => 10,
+	note_offset => 4,
 	line_v_offset => 4,
-	line_v_length => 20,
-	line_child_length => 20,
-	child_spacing => 40,
+	line_v_length => 4,
+	line_child_length => 8,
+	child_spacing => 10,
 );
 
 #                          note_offset
