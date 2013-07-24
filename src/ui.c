@@ -131,15 +131,19 @@ EAPI_MAIN int elm_main(int argc, char * argv[])
 	// init item class
 	ic = elm_genlist_item_class_new();
 	ic->item_style = "tree_effect";
-	{
+	{	// item class funcs
 		const char * text_get(Tree * t)
 		{
 			static char str[64];
 			int nboy, ngirl;
 			tree_count_direct_childs(t, &nboy, &ngirl);
-			snprintf(str, sizeof(str), "%s %s：%s子%s女",
-					(t->gender ? "女" : "男"),
-					t->name, lookup(nboy), lookup(ngirl));
+			int n = snprintf(str, sizeof(str), "%s %s：%s子%s女 %s",
+					(t->gender ? "女" : "男"), t->name,
+					lookup(nboy), lookup(ngirl), t->note);
+			printf("%d\n", n);
+			#define copy_to_str_end(dest, src) \
+					strcpy(&(dest)[sizeof(dest)-sizeof(src)-1], (src))
+			if (n >= sizeof(str)) copy_to_str_end(str, "......");
 			return strdup(str);
 		}
 
@@ -194,8 +198,7 @@ EAPI_MAIN int elm_main(int argc, char * argv[])
 		ic->func.content_get = ANY content_get;
 	}
 
-	{
-		// bind "expand" and "contract" related events
+	{	// bind "expand" and "contract" related events
 		void on_expand_request(SKIP, SKIP, Elm_Object_Item * item)
 		{
 			Tree * t = item::item_data;
